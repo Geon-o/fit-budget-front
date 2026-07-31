@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { ExpenseForm, ExpenseList, useExpenses } from '../domains/expense'
 import { formatCurrency } from '../shared/utils/dateUtils'
+import { useCountUp } from '../shared/hooks/useCountUp'
 import './ExpensePage.css'
 
 function getCurrentYearMonth(): string {
@@ -28,21 +29,21 @@ function ExpensePage() {
     return () => observer.disconnect()
   }, [])
 
+  const animatedSummaryTotal = useCountUp(total, !showFloatingTotal)
+
   return (
     <div>
-      <header className="expense-page__header">
-        <h1 className="expense-page__title">지출 내역</h1>
-        <input
-          className="expense-page__month-picker"
-          type="month"
-          value={yearMonth}
-          onChange={(e) => setYearMonth(e.target.value)}
-        />
-      </header>
-
       <section className="expense-page__summary" ref={summaryRef}>
-        <p className="expense-page__summary-label">이번 달 총 지출</p>
-        <p className="expense-page__summary-amount">{formatCurrency(total)}</p>
+        <div className="expense-page__summary-header">
+          <p className="expense-page__summary-label">이번 달 총 지출</p>
+          <input
+            className="expense-page__month-picker"
+            type="month"
+            value={yearMonth}
+            onChange={(e) => setYearMonth(e.target.value)}
+          />
+        </div>
+        <p className="expense-page__summary-amount">{formatCurrency(animatedSummaryTotal)}</p>
       </section>
 
       <div className="expense-page__layout">

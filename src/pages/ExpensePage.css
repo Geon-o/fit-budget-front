@@ -1,14 +1,8 @@
-.expense-page__header {
+.expense-page__summary-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 24px;
-}
-
-.expense-page__title {
-  font-size: 20px;
-  font-weight: 600;
-  letter-spacing: -0.02em;
+  margin-bottom: 10px;
 }
 
 .expense-page__month-picker {
@@ -42,13 +36,13 @@
   border-bottom: 1px solid var(--color-border);
   padding: 4px 0 28px;
   margin-bottom: 28px;
+  margin-top: 24px;
 }
 
 .expense-page__summary-label {
   font-size: 13px;
   color: var(--color-text-secondary);
   font-weight: 500;
-  margin-bottom: 10px;
 }
 
 .expense-page__summary-amount {
