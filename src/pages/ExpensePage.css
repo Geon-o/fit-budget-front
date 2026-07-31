@@ -1,0 +1,72 @@
+.expense-page__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.expense-page__title {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.expense-page__month-picker {
+  border: var(--border-card);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 7px 12px;
+  border-radius: var(--radius-sm);
+}
+
+.expense-page__layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 32px;
+}
+
+.expense-page__main {
+  flex: 1;
+  min-width: 0;
+}
+
+.expense-page__form-panel {
+  width: 300px;
+  flex-shrink: 0;
+}
+
+.expense-page__summary {
+  border-bottom: 1px solid var(--color-border);
+  padding: 4px 0 28px;
+  margin-bottom: 28px;
+}
+
+.expense-page__summary-label {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  margin-bottom: 10px;
+}
+
+.expense-page__summary-amount {
+  font-size: 48px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.expense-page__section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin-bottom: 12px;
+}
+
+.expense-page__empty {
+  text-align: center;
+  color: var(--color-text-tertiary);
+  font-size: 14px;
+  padding: 60px 0;
+}
