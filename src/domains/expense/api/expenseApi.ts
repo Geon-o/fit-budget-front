@@ -10,7 +10,7 @@ const mockExpenses: Expense[] = [
 ]
 
 export async function fetchExpenses(): Promise<Expense[]> {
-  return Promise.resolve(mockExpenses)
+  return Promise.resolve([...mockExpenses])
 }
 
 export async function addExpense(input: Omit<Expense, 'id' | 'source'>): Promise<Expense> {

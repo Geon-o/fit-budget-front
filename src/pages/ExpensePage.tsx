@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ExpenseForm, ExpenseList, useExpenses } from '../domains/expense'
 import { formatCurrency } from '../shared/utils/dateUtils'
 import './ExpensePage.css'
@@ -13,6 +13,21 @@ function ExpensePage() {
   const { expenses, isLoading, addExpense } = useExpenses(yearMonth)
   const total = expenses.reduce((sum, expense) => sum + expense.amount, 0)
 
+  const summaryRef = useRef<HTMLElement>(null)
+  const [showFloatingTotal, setShowFloatingTotal] = useState(false)
+
+  useEffect(() => {
+    const target = summaryRef.current
+    if (!target) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setShowFloatingTotal(!entry.isIntersecting),
+      { rootMargin: '-64px 0px 0px 0px' },
+    )
+    observer.observe(target)
+    return () => observer.disconnect()
+  }, [])
+
   return (
     <div>
       <header className="expense-page__header">
@@ -25,14 +40,15 @@ function ExpensePage() {
         />
       </header>
 
-      <section className="expense-page__summary">
+      <section className="expense-page__summary" ref={summaryRef}>
         <p className="expense-page__summary-label">이번 달 총 지출</p>
         <p className="expense-page__summary-amount">{formatCurrency(total)}</p>
       </section>
 
       <div className="expense-page__layout">
+        <p className="expense-page__section-title">지출 목록</p>
+
         <div className="expense-page__main">
-          <p className="expense-page__section-title">지출 목록</p>
           {isLoading ? (
             <p className="expense-page__empty">불러오는 중...</p>
           ) : (
@@ -41,7 +57,20 @@ function ExpensePage() {
         </div>
 
         <aside className="expense-page__form-panel">
-          <ExpenseForm onSubmit={addExpense} />
+          <div className="expense-page__form-sticky">
+            <ExpenseForm onSubmit={addExpense} />
+
+            <div
+              className={
+                showFloatingTotal
+                  ? 'expense-page__floating-total is-visible'
+                  : 'expense-page__floating-total'
+              }
+            >
+              <p className="expense-page__floating-total-label">이번 달 총 지출</p>
+              <p className="expense-page__floating-total-amount">{formatCurrency(total)}</p>
+            </div>
+          </div>
         </aside>
       </div>
     </div>

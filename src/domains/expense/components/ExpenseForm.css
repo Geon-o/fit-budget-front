@@ -6,8 +6,6 @@
   border-radius: var(--radius-lg);
   border: var(--border-card);
   padding: 20px;
-  position: sticky;
-  top: 88px;
 }
 
 .expense-form__field {
