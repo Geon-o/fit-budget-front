@@ -1,0 +1,40 @@
+.budget-page__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.budget-page__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.budget-page__month-picker {
+  border: var(--border-card);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 7px 12px;
+  border-radius: var(--radius-sm);
+}
+
+.budget-page__layout {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  column-gap: 32px;
+  align-items: start;
+}
+
+.budget-page__main {
+  min-width: 0;
+}
+
+.budget-page__empty {
+  color: var(--color-text-tertiary);
+  font-size: 14px;
+  padding: 40px 0;
+  text-align: center;
+}

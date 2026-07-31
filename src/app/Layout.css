@@ -22,15 +22,14 @@
 }
 
 .app-nav__logo {
-  font-size: 17px;
-  font-weight: 700;
-  letter-spacing: -0.03em;
-  color: var(--color-text);
+  display: inline-flex;
+  align-items: center;
 }
 
 .app-nav__links {
   display: flex;
   gap: 28px;
+  margin-left: auto;
 }
 
 .app-nav__link {

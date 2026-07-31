@@ -1,4 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom'
+import Logo from './Logo'
 import './Layout.css'
 
 const NAV_ITEMS = [
@@ -12,7 +13,9 @@ function Layout() {
     <div className="app-layout">
       <header className="app-nav">
         <div className="app-nav__inner">
-          <span className="app-nav__logo">FitBudget</span>
+          <NavLink to="/" className="app-nav__logo" aria-label="FitBudget">
+            <Logo />
+          </NavLink>
           <nav className="app-nav__links">
             {NAV_ITEMS.map((item) => (
               <NavLink
