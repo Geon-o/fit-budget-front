@@ -1,0 +1,79 @@
+.budget-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  border: var(--border-card);
+  overflow: hidden;
+}
+
+.budget-list__item + .budget-list__item {
+  border-top: 1px solid var(--color-border);
+}
+
+.budget-list__header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: none;
+  background: transparent;
+  padding: 16px 20px;
+  font-family: inherit;
+}
+
+.budget-list__month {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.budget-list__chevron {
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+  transition: transform 0.2s ease;
+}
+
+.budget-list__chevron.is-open {
+  transform: rotate(180deg);
+}
+
+.budget-list__detail {
+  padding: 0 20px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.budget-list__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.budget-list__label {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.budget-list__value {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.budget-list__dday {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.budget-list__empty {
+  color: var(--color-text-tertiary);
+  font-size: 14px;
+  padding: 40px 0;
+  text-align: center;
+}

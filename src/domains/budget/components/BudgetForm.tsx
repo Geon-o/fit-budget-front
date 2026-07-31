@@ -1,23 +1,31 @@
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import type { Budget } from '../types/budget.types'
+import { getDaysUntil } from '../../../shared/utils/dateUtils'
 import './BudgetForm.css'
 
-interface BudgetFormProps {
-  budget: Budget | null
-  onSubmit: (input: Omit<Budget, 'id' | 'yearMonth'>) => void
+function getCurrentYearMonth(): string {
+  const now = new Date()
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
 }
 
-function BudgetForm({ budget, onSubmit }: BudgetFormProps) {
+interface BudgetFormProps {
+  budgets: Budget[]
+  onSubmit: (input: Omit<Budget, 'id'>) => void
+}
+
+function BudgetForm({ budgets, onSubmit }: BudgetFormProps) {
+  const [yearMonth, setYearMonth] = useState(getCurrentYearMonth())
   const [monthlyBudget, setMonthlyBudget] = useState('')
   const [savingGoal, setSavingGoal] = useState('')
   const [paymentDate, setPaymentDate] = useState('')
 
   useEffect(() => {
-    setMonthlyBudget(budget ? String(budget.monthlyBudget) : '')
-    setSavingGoal(budget ? String(budget.savingGoal) : '')
-    setPaymentDate(budget?.paymentDate ?? '')
-  }, [budget])
+    const existing = budgets.find((b) => b.yearMonth === yearMonth)
+    setMonthlyBudget(existing ? String(existing.monthlyBudget) : '')
+    setSavingGoal(existing ? String(existing.savingGoal) : '')
+    setPaymentDate(existing?.paymentDate ?? '')
+  }, [yearMonth, budgets])
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault()
@@ -25,11 +33,22 @@ function BudgetForm({ budget, onSubmit }: BudgetFormProps) {
     const parsedGoal = Number(savingGoal)
     if (!parsedBudget || parsedBudget <= 0 || !paymentDate) return
 
-    onSubmit({ monthlyBudget: parsedBudget, savingGoal: parsedGoal || 0, paymentDate })
+    onSubmit({ yearMonth, monthlyBudget: parsedBudget, savingGoal: parsedGoal || 0, paymentDate })
   }
 
   return (
     <form className="budget-form" onSubmit={handleSubmit}>
+      <label className="budget-form__field">
+        <span className="budget-form__label">대상 월</span>
+        <input
+          className="budget-form__input"
+          type="month"
+          value={yearMonth}
+          onChange={(e) => setYearMonth(e.target.value)}
+          required
+        />
+      </label>
+
       <label className="budget-form__field">
         <span className="budget-form__label">월 생활비 예산</span>
         <input
@@ -66,6 +85,9 @@ function BudgetForm({ budget, onSubmit }: BudgetFormProps) {
           onChange={(e) => setPaymentDate(e.target.value)}
           required
         />
+        {paymentDate && (
+          <span className="budget-form__dday">D-{getDaysUntil(paymentDate)}</span>
+        )}
       </label>
 
       <button className="budget-form__submit" type="submit">

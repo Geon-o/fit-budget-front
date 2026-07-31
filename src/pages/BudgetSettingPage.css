@@ -2,23 +2,15 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 24px;
+  grid-column: 1;
+  grid-row: 1;
+  margin-bottom: 16px;
 }
 
 .budget-page__label {
   font-size: 13px;
   font-weight: 600;
   color: var(--color-text-secondary);
-}
-
-.budget-page__month-picker {
-  border: var(--border-card);
-  background: var(--color-surface);
-  color: var(--color-text);
-  font-size: 14px;
-  font-weight: 500;
-  padding: 7px 12px;
-  border-radius: var(--radius-sm);
 }
 
 .budget-page__layout {
@@ -29,7 +21,16 @@
 }
 
 .budget-page__main {
+  grid-column: 1;
+  grid-row: 2;
   min-width: 0;
+}
+
+.budget-page__form-panel {
+  grid-column: 2;
+  grid-row: 2;
+  position: sticky;
+  top: 88px;
 }
 
 .budget-page__empty {

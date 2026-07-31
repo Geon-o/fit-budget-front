@@ -12,6 +12,7 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+  position: relative;
 }
 
 .budget-form__label {
@@ -33,6 +34,13 @@
 .budget-form__input:focus {
   outline: 2px solid var(--color-primary);
   outline-offset: -1px;
+}
+
+.budget-form__dday {
+  align-self: flex-end;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-primary);
 }
 
 .budget-form__submit {

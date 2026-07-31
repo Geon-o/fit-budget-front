@@ -6,6 +6,11 @@ export function formatCurrency(amount: number): string {
   return `${amount.toLocaleString('ko-KR')}원`
 }
 
+export function formatYearMonth(yearMonth: string): string {
+  const [year, month] = yearMonth.split('-')
+  return `${year}년 ${Number(month)}월`
+}
+
 export function getDaysUntil(dateStr: string): number {
   const today = new Date()
   today.setHours(0, 0, 0, 0)

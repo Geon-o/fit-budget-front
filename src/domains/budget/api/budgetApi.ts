@@ -3,6 +3,13 @@ import type { Budget } from '../types/budget.types'
 const mockBudgets: Budget[] = [
   {
     id: '1',
+    yearMonth: '2026-06',
+    monthlyBudget: 750000,
+    savingGoal: 150000,
+    paymentDate: '2026-07-25',
+  },
+  {
+    id: '2',
     yearMonth: '2026-07',
     monthlyBudget: 800000,
     savingGoal: 200000,
@@ -10,9 +17,8 @@ const mockBudgets: Budget[] = [
   },
 ]
 
-export async function fetchBudget(yearMonth: string): Promise<Budget | null> {
-  const found = mockBudgets.find((b) => b.yearMonth === yearMonth)
-  return Promise.resolve(found ? { ...found } : null)
+export async function fetchBudgets(): Promise<Budget[]> {
+  return Promise.resolve([...mockBudgets])
 }
 
 export async function saveBudget(input: Omit<Budget, 'id'>): Promise<Budget> {
