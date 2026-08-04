@@ -49,10 +49,43 @@
   color: var(--color-text);
 }
 
+.budget-list__month-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .budget-list__month {
   font-size: 15px;
   font-weight: 600;
   color: var(--color-text);
+}
+
+.budget-list__status {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 999px;
+}
+
+.budget-list__status--progress {
+  color: var(--color-primary);
+  background: var(--color-primary-bg);
+}
+
+.budget-list__status--closed {
+  color: var(--color-text-tertiary);
+  background: var(--color-bg);
+}
+
+.budget-list__edit:disabled {
+  color: var(--color-text-tertiary);
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.budget-list__edit:disabled:hover {
+  background: transparent;
 }
 
 .budget-list__chevron {

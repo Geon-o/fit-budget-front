@@ -8,9 +8,10 @@ interface BudgetListProps {
   onSave: (input: Omit<Budget, 'id'>) => void
   openYearMonth: string | null
   onToggle: (yearMonth: string | null) => void
+  isClosed: (yearMonth: string) => boolean
 }
 
-function BudgetList({ budgets, onSave, openYearMonth, onToggle }: BudgetListProps) {
+function BudgetList({ budgets, onSave, openYearMonth, onToggle, isClosed }: BudgetListProps) {
   const [editingYearMonth, setEditingYearMonth] = useState<string | null>(null)
   const [monthlyBudget, setMonthlyBudget] = useState('')
   const [savingGoal, setSavingGoal] = useState('')
@@ -56,6 +57,7 @@ function BudgetList({ budgets, onSave, openYearMonth, onToggle }: BudgetListProp
         const isOpen = openYearMonth === budget.yearMonth
         const isEditing = editingYearMonth === budget.yearMonth
         const daysUntilPayment = getDaysUntil(budget.paymentDate)
+        const closed = isClosed(budget.yearMonth)
 
         return (
           <li key={budget.id} className="budget-list__item">
@@ -66,7 +68,18 @@ function BudgetList({ budgets, onSave, openYearMonth, onToggle }: BudgetListProp
                 onClick={() => onToggle(isOpen ? null : budget.yearMonth)}
                 aria-expanded={isOpen}
               >
-                <span className="budget-list__month">{formatYearMonth(budget.yearMonth)}</span>
+                <span className="budget-list__month-group">
+                  <span className="budget-list__month">{formatYearMonth(budget.yearMonth)}</span>
+                  <span
+                    className={
+                      closed
+                        ? 'budget-list__status budget-list__status--closed'
+                        : 'budget-list__status budget-list__status--progress'
+                    }
+                  >
+                    {closed ? '마감' : '진행중'}
+                  </span>
+                </span>
                 <span className={isOpen ? 'budget-list__chevron is-open' : 'budget-list__chevron'}>
                   ▾
                 </span>
@@ -75,6 +88,7 @@ function BudgetList({ budgets, onSave, openYearMonth, onToggle }: BudgetListProp
                 type="button"
                 className="budget-list__edit"
                 aria-label="수정"
+                disabled={closed}
                 onClick={() => startEdit(budget)}
               >
                 <svg viewBox="0 0 20 20" width="16" height="16" fill="none">

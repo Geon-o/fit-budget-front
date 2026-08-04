@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { BudgetForm, BudgetList, useBudgets } from '../domains/budget'
+import { useClosedMonths } from '../domains/expense'
 import Select from '../shared/components/Select'
 import './BudgetSettingPage.css'
 
@@ -14,6 +15,7 @@ function getCurrentYearMonth(): string {
 
 function BudgetSettingPage() {
   const { budgets, isLoading, saveBudget } = useBudgets()
+  const { isClosed } = useClosedMonths()
   const [year, setYear] = useState(getCurrentYear())
   const [openYearMonth, setOpenYearMonth] = useState<string | null>(null)
   const hasAutoOpened = useRef(false)
@@ -65,6 +67,7 @@ function BudgetSettingPage() {
             onSave={saveBudget}
             openYearMonth={openYearMonth}
             onToggle={setOpenYearMonth}
+            isClosed={isClosed}
           />
         )}
       </div>
