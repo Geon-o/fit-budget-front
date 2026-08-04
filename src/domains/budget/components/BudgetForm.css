@@ -21,6 +21,12 @@
   color: var(--color-text-secondary);
 }
 
+.budget-form__label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .budget-form__input {
   border: none;
   background: var(--color-bg);
@@ -37,10 +43,14 @@
 }
 
 .budget-form__dday {
-  align-self: flex-end;
   font-size: 12px;
   font-weight: 600;
   color: var(--color-primary);
+}
+
+.budget-form__hint {
+  font-size: 12px;
+  color: var(--color-danger);
 }
 
 .budget-form__submit {
@@ -52,4 +62,10 @@
   padding: 11px;
   border-radius: var(--radius-sm);
   margin-top: 4px;
+}
+
+.budget-form__submit:disabled {
+  background: var(--color-border);
+  color: var(--color-text-tertiary);
+  cursor: not-allowed;
 }

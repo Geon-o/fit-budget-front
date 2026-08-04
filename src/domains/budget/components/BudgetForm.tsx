@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import type { FormEvent } from 'react'
 import type { Budget } from '../types/budget.types'
 import { getDaysUntil } from '../../../shared/utils/dateUtils'
@@ -20,20 +20,21 @@ function BudgetForm({ budgets, onSubmit }: BudgetFormProps) {
   const [savingGoal, setSavingGoal] = useState('')
   const [paymentDate, setPaymentDate] = useState('')
 
-  useEffect(() => {
-    const existing = budgets.find((b) => b.yearMonth === yearMonth)
-    setMonthlyBudget(existing ? String(existing.monthlyBudget) : '')
-    setSavingGoal(existing ? String(existing.savingGoal) : '')
-    setPaymentDate(existing?.paymentDate ?? '')
-  }, [yearMonth, budgets])
+  const alreadyRegistered = budgets.some((b) => b.yearMonth === yearMonth)
+  const daysUntilPayment = paymentDate ? getDaysUntil(paymentDate) : null
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault()
     const parsedBudget = Number(monthlyBudget)
     const parsedGoal = Number(savingGoal)
-    if (!parsedBudget || parsedBudget <= 0 || !paymentDate) return
+    if (!parsedBudget || parsedBudget <= 0 || !paymentDate || alreadyRegistered) return
 
     onSubmit({ yearMonth, monthlyBudget: parsedBudget, savingGoal: parsedGoal || 0, paymentDate })
+
+    setYearMonth(getCurrentYearMonth())
+    setMonthlyBudget('')
+    setSavingGoal('')
+    setPaymentDate('')
   }
 
   return (
@@ -47,6 +48,9 @@ function BudgetForm({ budgets, onSubmit }: BudgetFormProps) {
           onChange={(e) => setYearMonth(e.target.value)}
           required
         />
+        {alreadyRegistered && (
+          <span className="budget-form__hint">이미 등록된 달이에요. 목록에서 수정해주세요.</span>
+        )}
       </label>
 
       <label className="budget-form__field">
@@ -77,7 +81,12 @@ function BudgetForm({ budgets, onSubmit }: BudgetFormProps) {
       </label>
 
       <label className="budget-form__field">
-        <span className="budget-form__label">다음달 생활비 입금일</span>
+        <span className="budget-form__label-row">
+          <span className="budget-form__label">다음달 생활비 입금일</span>
+          {daysUntilPayment !== null && daysUntilPayment > 0 && (
+            <span className="budget-form__dday">D-{daysUntilPayment}</span>
+          )}
+        </span>
         <input
           className="budget-form__input"
           type="date"
@@ -85,13 +94,10 @@ function BudgetForm({ budgets, onSubmit }: BudgetFormProps) {
           onChange={(e) => setPaymentDate(e.target.value)}
           required
         />
-        {paymentDate && (
-          <span className="budget-form__dday">D-{getDaysUntil(paymentDate)}</span>
-        )}
       </label>
 
-      <button className="budget-form__submit" type="submit">
-        저장하기
+      <button className="budget-form__submit" type="submit" disabled={alreadyRegistered}>
+        등록하기
       </button>
     </form>
   )

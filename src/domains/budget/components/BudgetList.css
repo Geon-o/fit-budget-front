@@ -13,14 +13,40 @@
 }
 
 .budget-list__header {
-  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px 8px 20px;
+}
+
+.budget-list__toggle {
+  flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
   border: none;
   background: transparent;
-  padding: 16px 20px;
+  padding: 8px 0;
   font-family: inherit;
+}
+
+.budget-list__edit {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-tertiary);
+}
+
+.budget-list__edit:hover {
+  background: var(--color-bg);
+  color: var(--color-text);
 }
 
 .budget-list__month {
@@ -69,6 +95,49 @@
   font-size: 12px;
   font-weight: 600;
   color: var(--color-primary);
+}
+
+.budget-list__edit-input {
+  border: none;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  width: 140px;
+  text-align: right;
+}
+
+.budget-list__edit-input:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -1px;
+}
+
+.budget-list__edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.budget-list__cancel,
+.budget-list__save {
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 7px 14px;
+  border-radius: var(--radius-sm);
+}
+
+.budget-list__cancel {
+  background: var(--color-bg);
+  color: var(--color-text-secondary);
+}
+
+.budget-list__save {
+  background: var(--color-primary);
+  color: #ffffff;
 }
 
 .budget-list__empty {

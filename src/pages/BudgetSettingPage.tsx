@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { BudgetForm, BudgetList, useBudgets } from '../domains/budget'
 import Select from '../shared/components/Select'
 import './BudgetSettingPage.css'
@@ -7,13 +7,36 @@ function getCurrentYear(): string {
   return String(new Date().getFullYear())
 }
 
+function getCurrentYearMonth(): string {
+  const now = new Date()
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+}
+
 function BudgetSettingPage() {
   const { budgets, isLoading, saveBudget } = useBudgets()
   const [year, setYear] = useState(getCurrentYear())
+  const [openYearMonth, setOpenYearMonth] = useState<string | null>(null)
+  const hasAutoOpened = useRef(false)
+
+  useEffect(() => {
+    if (hasAutoOpened.current || isLoading || budgets.length === 0) return
+    hasAutoOpened.current = true
+
+    const currentYearMonth = getCurrentYearMonth()
+    const target =
+      budgets.find((b) => b.yearMonth === currentYearMonth) ??
+      [...budgets].sort((a, b) => b.yearMonth.localeCompare(a.yearMonth))[0]
+
+    setYear(target.yearMonth.slice(0, 4))
+    setOpenYearMonth(target.yearMonth)
+  }, [isLoading, budgets])
 
   const yearOptions = useMemo(() => {
+    const currentYear = Number(getCurrentYear())
     const years = new Set(budgets.map((b) => b.yearMonth.slice(0, 4)))
-    years.add(getCurrentYear())
+    for (let y = currentYear - 5; y <= currentYear + 5; y++) {
+      years.add(String(y))
+    }
     return [...years].sort((a, b) => b.localeCompare(a))
   }, [budgets])
 
@@ -37,7 +60,12 @@ function BudgetSettingPage() {
         {isLoading ? (
           <p className="budget-page__empty">불러오는 중...</p>
         ) : (
-          <BudgetList budgets={filteredBudgets} />
+          <BudgetList
+            budgets={filteredBudgets}
+            onSave={saveBudget}
+            openYearMonth={openYearMonth}
+            onToggle={setOpenYearMonth}
+          />
         )}
       </div>
 
