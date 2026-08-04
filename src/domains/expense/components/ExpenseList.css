@@ -59,3 +59,39 @@
   color: var(--color-text);
   font-variant-numeric: tabular-nums;
 }
+
+.expense-item__actions {
+  flex-shrink: 0;
+  display: flex;
+  gap: 2px;
+}
+
+.expense-item__action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-tertiary);
+}
+
+.expense-item__action:hover {
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.expense-item__action--danger:hover {
+  color: var(--color-danger);
+}
+
+.expense-item--editing {
+  padding: 12px 16px;
+}
+
+.expense-item--editing .expense-form {
+  padding: 0;
+  border: none;
+}

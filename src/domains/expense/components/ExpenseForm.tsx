@@ -10,13 +10,17 @@ function getToday(): string {
 
 interface ExpenseFormProps {
   onSubmit: (input: Omit<Expense, 'id' | 'source'>) => void
+  initialValue?: Omit<Expense, 'id' | 'source'>
+  submitLabel?: string
+  onCancel?: () => void
+  compact?: boolean
 }
 
-function ExpenseForm({ onSubmit }: ExpenseFormProps) {
-  const [expenseDate, setExpenseDate] = useState(getToday())
-  const [amount, setAmount] = useState('')
-  const [category, setCategory] = useState<string>(EXPENSE_CATEGORIES[0])
-  const [memo, setMemo] = useState('')
+function ExpenseForm({ onSubmit, initialValue, submitLabel, onCancel, compact }: ExpenseFormProps) {
+  const [expenseDate, setExpenseDate] = useState(initialValue?.expenseDate ?? getToday())
+  const [amount, setAmount] = useState(initialValue ? String(initialValue.amount) : '')
+  const [category, setCategory] = useState<string>(initialValue?.category ?? EXPENSE_CATEGORIES[0])
+  const [memo, setMemo] = useState(initialValue?.memo ?? '')
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault()
@@ -25,12 +29,14 @@ function ExpenseForm({ onSubmit }: ExpenseFormProps) {
 
     onSubmit({ expenseDate, amount: parsedAmount, category, memo })
 
-    setAmount('')
-    setMemo('')
+    if (!initialValue) {
+      setAmount('')
+      setMemo('')
+    }
   }
 
   return (
-    <form className="expense-form" onSubmit={handleSubmit}>
+    <form className={compact ? 'expense-form expense-form--compact' : 'expense-form'} onSubmit={handleSubmit}>
       <label className="expense-form__field">
         <span className="expense-form__label">날짜</span>
         <input
@@ -82,9 +88,16 @@ function ExpenseForm({ onSubmit }: ExpenseFormProps) {
         />
       </label>
 
-      <button className="expense-form__submit" type="submit">
-        추가하기
-      </button>
+      <div className="expense-form__actions">
+        {onCancel && (
+          <button className="expense-form__cancel" type="button" onClick={onCancel}>
+            취소
+          </button>
+        )}
+        <button className="expense-form__submit" type="submit">
+          {submitLabel ?? '추가하기'}
+        </button>
+      </div>
     </form>
   )
 }

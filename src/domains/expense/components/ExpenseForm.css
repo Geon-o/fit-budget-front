@@ -35,7 +35,14 @@
   outline-offset: -1px;
 }
 
+.expense-form__actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
 .expense-form__submit {
+  flex: 1;
   border: none;
   background: var(--color-primary);
   color: #ffffff;
@@ -43,5 +50,37 @@
   font-weight: 600;
   padding: 11px;
   border-radius: var(--radius-sm);
-  margin-top: 4px;
+}
+
+.expense-form__cancel {
+  flex: 1;
+  border: none;
+  background: var(--color-bg);
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 11px;
+  border-radius: var(--radius-sm);
+}
+
+.expense-form--compact {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.expense-form--compact .expense-form__field {
+  flex: 1 1 140px;
+}
+
+.expense-form--compact .expense-form__actions {
+  flex: 1 0 100%;
+  justify-content: flex-end;
+  margin-top: 2px;
+}
+
+.expense-form--compact .expense-form__submit,
+.expense-form--compact .expense-form__cancel {
+  flex: none;
+  padding: 8px 16px;
 }

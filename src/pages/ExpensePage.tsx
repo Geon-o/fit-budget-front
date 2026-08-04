@@ -11,7 +11,7 @@ function getCurrentYearMonth(): string {
 
 function ExpensePage() {
   const [yearMonth, setYearMonth] = useState(getCurrentYearMonth())
-  const { expenses, isLoading, addExpense } = useExpenses(yearMonth)
+  const { expenses, isLoading, addExpense, updateExpense, deleteExpense } = useExpenses(yearMonth)
   const total = expenses.reduce((sum, expense) => sum + expense.amount, 0)
 
   const summaryRef = useRef<HTMLElement>(null)
@@ -53,7 +53,7 @@ function ExpensePage() {
           {isLoading ? (
             <p className="expense-page__empty">불러오는 중...</p>
           ) : (
-            <ExpenseList expenses={expenses} />
+            <ExpenseList expenses={expenses} onUpdate={updateExpense} onDelete={deleteExpense} />
           )}
         </div>
 
