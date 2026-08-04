@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { ExpenseForm, ExpenseList, useExpenses } from '../domains/expense'
+import { Link } from 'react-router-dom'
+import { ExpenseForm, ExpenseList, useClosedMonths, useExpenses } from '../domains/expense'
+import { useBudgets } from '../domains/budget'
 import { formatCurrency } from '../shared/utils/dateUtils'
 import { useCountUp } from '../shared/hooks/useCountUp'
 import './ExpensePage.css'
@@ -12,7 +14,28 @@ function getCurrentYearMonth(): string {
 function ExpensePage() {
   const [yearMonth, setYearMonth] = useState(getCurrentYearMonth())
   const { expenses, isLoading, addExpense, updateExpense, deleteExpense } = useExpenses(yearMonth)
+  const { isClosed, toggleClosed } = useClosedMonths()
+  const monthClosed = isClosed(yearMonth)
   const total = expenses.reduce((sum, expense) => sum + expense.amount, 0)
+
+  const { budgets } = useBudgets()
+  const budget = budgets.find((b) => b.yearMonth === yearMonth)
+  const monthlyBudget = budget?.monthlyBudget ?? 0
+  const savingGoal = budget?.savingGoal ?? 0
+  const remainingBudget = monthlyBudget - total
+  const savingGap = remainingBudget - savingGoal
+  const savingAnalysis =
+    savingGap > 0
+      ? `목표보다 ${formatCurrency(savingGap)} 더 모았어요`
+      : savingGap < 0
+        ? `목표보다 ${formatCurrency(Math.abs(savingGap))} 덜 모았어요`
+        : '목표한 금액만큼 정확히 모았어요'
+  const savingAnalysisClass =
+    savingGap > 0
+      ? 'expense-page__closed-summary-headline is-positive'
+      : savingGap < 0
+        ? 'expense-page__closed-summary-headline is-negative'
+        : 'expense-page__closed-summary-headline'
 
   const summaryRef = useRef<HTMLElement>(null)
   const [showFloatingTotal, setShowFloatingTotal] = useState(false)
@@ -35,7 +58,6 @@ function ExpensePage() {
     <div>
       <section className="expense-page__summary" ref={summaryRef}>
         <div className="expense-page__summary-header">
-          <p className="expense-page__summary-label">이번 달 총 지출</p>
           <input
             className="expense-page__month-picker"
             type="month"
@@ -43,7 +65,25 @@ function ExpensePage() {
             onChange={(e) => setYearMonth(e.target.value)}
           />
         </div>
-        <p className="expense-page__summary-amount">{formatCurrency(animatedSummaryTotal)}</p>
+        <button
+          type="button"
+          className="expense-page__close-button"
+          onClick={() => toggleClosed(yearMonth)}
+        >
+          {monthClosed ? '마감취소' : '마감'}
+        </button>
+        <div
+          className={
+            monthClosed
+              ? 'expense-page__summary-collapsible is-collapsed'
+              : 'expense-page__summary-collapsible'
+          }
+        >
+          <div className="expense-page__summary-collapsible-inner">
+            <p className="expense-page__summary-label">이번 달 총 지출</p>
+            <p className="expense-page__summary-amount">{formatCurrency(animatedSummaryTotal)}</p>
+          </div>
+        </div>
       </section>
 
       <div className="expense-page__layout">
@@ -53,13 +93,62 @@ function ExpensePage() {
           {isLoading ? (
             <p className="expense-page__empty">불러오는 중...</p>
           ) : (
-            <ExpenseList expenses={expenses} onUpdate={updateExpense} onDelete={deleteExpense} />
+            <ExpenseList
+              expenses={expenses}
+              onUpdate={updateExpense}
+              onDelete={deleteExpense}
+              readOnly={monthClosed}
+            />
           )}
         </div>
 
         <aside className="expense-page__form-panel">
           <div className="expense-page__form-sticky">
-            <ExpenseForm onSubmit={addExpense} />
+            {monthClosed ? (
+              <div className="expense-page__closed-summary">
+                <div className="expense-page__closed-summary-inputs">
+                  <div className="expense-page__closed-summary-row">
+                    <span>예산</span>
+                    <span>{formatCurrency(monthlyBudget)}</span>
+                  </div>
+                  <div className="expense-page__closed-summary-row">
+                    <span>지출금액</span>
+                    <span>{formatCurrency(total)}</span>
+                  </div>
+                </div>
+
+                <div className="expense-page__closed-summary-divider" />
+
+                <div className="expense-page__closed-summary-compare">
+                  <div className="expense-page__closed-summary-compare-item">
+                    <span className="expense-page__closed-summary-compare-label">잔여 예산</span>
+                    <span className="expense-page__closed-summary-compare-value">
+                      {formatCurrency(remainingBudget)}
+                    </span>
+                  </div>
+                  <div className="expense-page__closed-summary-compare-item">
+                    <span className="expense-page__closed-summary-compare-label">목표 저축금액</span>
+                    <span className="expense-page__closed-summary-compare-value">
+                      {formatCurrency(savingGoal)}
+                    </span>
+                  </div>
+                </div>
+
+                <p className={savingAnalysisClass}>{savingAnalysis}</p>
+              </div>
+            ) : (
+              <>
+                {!budget && (
+                  <div className="expense-page__budget-nudge">
+                    <span>이 달 예산이 없어요</span>
+                    <Link to="/budget" className="expense-page__budget-nudge-link">
+                      예산 설정하기
+                    </Link>
+                  </div>
+                )}
+                <ExpenseForm onSubmit={addExpense} />
+              </>
+            )}
 
             <div
               className={

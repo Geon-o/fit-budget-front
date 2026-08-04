@@ -1,18 +1,38 @@
 .expense-page__summary-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 10px;
+  margin-bottom: 24px;
 }
 
 .expense-page__month-picker {
-  border: var(--border-card);
-  background: var(--color-surface);
+  border: none;
+  background: transparent;
   color: var(--color-text);
   font-size: 14px;
   font-weight: 500;
-  padding: 7px 12px;
-  border-radius: var(--radius-sm);
+  padding: 0;
+}
+
+.expense-page__budget-nudge {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  background: var(--color-primary-bg);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.expense-page__budget-nudge-link {
+  color: var(--color-primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.expense-page__budget-nudge-link:hover {
+  text-decoration: underline;
 }
 
 .expense-page__layout {
@@ -33,6 +53,7 @@
 }
 
 .expense-page__summary {
+  position: relative;
   border-bottom: 1px solid var(--color-border);
   padding: 4px 0 28px;
   margin-bottom: 28px;
@@ -43,6 +64,7 @@
   font-size: 13px;
   color: var(--color-text-secondary);
   font-weight: 500;
+  margin-bottom: 2px;
 }
 
 .expense-page__summary-amount {
@@ -50,6 +72,124 @@
   font-weight: 700;
   letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
+}
+
+.expense-page__close-button {
+  position: absolute;
+  right: 0;
+  bottom: 28px;
+  border: var(--border-card);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 9px 16px;
+  border-radius: var(--radius-sm);
+}
+
+.expense-page__close-button:hover {
+  color: var(--color-text);
+  background: var(--color-bg);
+}
+
+.expense-page__summary-collapsible {
+  display: grid;
+  grid-template-rows: 1fr;
+  opacity: 1;
+  margin-top: 14px;
+  transition: grid-template-rows 0.4s ease, opacity 0.3s ease, margin-top 0.4s ease;
+}
+
+.expense-page__summary-collapsible.is-collapsed {
+  grid-template-rows: 0fr;
+  opacity: 0;
+  margin-top: 0;
+}
+
+.expense-page__summary-collapsible-inner {
+  overflow: hidden;
+  min-height: 0;
+}
+
+.expense-page__closed-summary {
+  background: var(--color-surface);
+  border: var(--border-card);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.expense-page__closed-summary-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.expense-page__closed-summary-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.expense-page__closed-summary-row span:last-child {
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.expense-page__closed-summary-divider {
+  border-top: 1px solid var(--color-border);
+}
+
+.expense-page__closed-summary-compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+  padding: 14px;
+}
+
+.expense-page__closed-summary-compare-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.expense-page__closed-summary-compare-item:first-child {
+  border-right: 1px solid var(--color-border);
+}
+
+.expense-page__closed-summary-compare-label {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.expense-page__closed-summary-compare-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.expense-page__closed-summary-headline {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text);
+  text-align: center;
+}
+
+.expense-page__closed-summary-headline.is-positive {
+  color: var(--color-primary);
+}
+
+.expense-page__closed-summary-headline.is-negative {
+  color: var(--color-danger);
 }
 
 .expense-page__section-title {
