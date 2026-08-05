@@ -1,0 +1,70 @@
+.wheel-picker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.wheel-picker__button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 20px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-tertiary);
+  border-radius: var(--radius-sm);
+}
+
+.wheel-picker__button:hover:not(:disabled) {
+  color: var(--color-text);
+  background: var(--color-bg);
+}
+
+.wheel-picker__button:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
+.wheel-picker__reel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 64px;
+  user-select: none;
+}
+
+.wheel-picker__item {
+  height: 22px;
+  line-height: 22px;
+  white-space: nowrap;
+}
+
+.wheel-picker__item--edge {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-tertiary);
+  opacity: 0.5;
+}
+
+.wheel-picker__item--current {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-text);
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  animation: wheel-picker-pop 0.25s ease;
+}
+
+@keyframes wheel-picker-pop {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

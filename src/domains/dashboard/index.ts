@@ -1,0 +1,5 @@
+export { default as ExpenseCalendar } from './components/ExpenseCalendar'
+export { default as CategoryBreakdown } from './components/CategoryBreakdown'
+export { default as SummaryCards } from './components/SummaryCards'
+export { default as RecentExpenses } from './components/RecentExpenses'
+export { default as BudgetTrendChart } from './components/BudgetTrendChart'
