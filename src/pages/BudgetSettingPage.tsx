@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { BudgetForm, BudgetList, useBudgets } from '../domains/budget'
 import { useClosedMonths } from '../domains/expense'
+import { RecurringExpenseForm, RecurringExpenseList, useRecurringExpenses } from '../domains/recurringExpense'
 import Select from '../shared/components/Select'
 import './BudgetSettingPage.css'
 
@@ -16,8 +17,15 @@ function getCurrentYearMonth(): string {
 function BudgetSettingPage() {
   const { budgets, isLoading, saveBudget } = useBudgets()
   const { isClosed } = useClosedMonths()
+  const {
+    recurringExpenses,
+    isLoading: isRecurringLoading,
+    addRecurringExpense,
+    deleteRecurringExpense,
+  } = useRecurringExpenses()
   const [year, setYear] = useState(getCurrentYear())
   const [openYearMonth, setOpenYearMonth] = useState<string | null>(null)
+  const [budgetFormYearMonth, setBudgetFormYearMonth] = useState(getCurrentYearMonth())
   const hasAutoOpened = useRef(false)
 
   useEffect(() => {
@@ -73,8 +81,30 @@ function BudgetSettingPage() {
       </div>
 
       <aside className="budget-page__form-panel">
-        <BudgetForm budgets={budgets} onSubmit={saveBudget} />
+        <BudgetForm
+          budgets={budgets}
+          onSubmit={saveBudget}
+          onYearMonthChange={setBudgetFormYearMonth}
+        />
       </aside>
+
+      <div className="budget-page__recurring">
+        <p className="budget-page__label">고정 지출</p>
+        <div className="budget-page__recurring-layout">
+          {isRecurringLoading ? (
+            <p className="budget-page__empty">불러오는 중...</p>
+          ) : (
+            <RecurringExpenseList
+              recurringExpenses={recurringExpenses}
+              onDelete={deleteRecurringExpense}
+            />
+          )}
+          <RecurringExpenseForm
+            onSubmit={addRecurringExpense}
+            targetYearMonth={budgetFormYearMonth}
+          />
+        </div>
+      </div>
     </div>
   )
 }

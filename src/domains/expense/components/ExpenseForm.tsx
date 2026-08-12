@@ -14,13 +14,25 @@ interface ExpenseFormProps {
   submitLabel?: string
   onCancel?: () => void
   compact?: boolean
+  prefillCategory?: string
+  prefillMemo?: string
 }
 
-function ExpenseForm({ onSubmit, initialValue, submitLabel, onCancel, compact }: ExpenseFormProps) {
+function ExpenseForm({
+  onSubmit,
+  initialValue,
+  submitLabel,
+  onCancel,
+  compact,
+  prefillCategory,
+  prefillMemo,
+}: ExpenseFormProps) {
   const [expenseDate, setExpenseDate] = useState(initialValue?.expenseDate ?? getToday())
   const [amount, setAmount] = useState(initialValue ? String(initialValue.amount) : '')
-  const [category, setCategory] = useState<string>(initialValue?.category ?? EXPENSE_CATEGORIES[0])
-  const [memo, setMemo] = useState(initialValue?.memo ?? '')
+  const [category, setCategory] = useState<string>(
+    initialValue?.category ?? prefillCategory ?? EXPENSE_CATEGORIES[0],
+  )
+  const [memo, setMemo] = useState(initialValue?.memo ?? prefillMemo ?? '')
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault()

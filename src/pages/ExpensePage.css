@@ -26,6 +26,11 @@
 }
 
 .expense-page__budget-nudge-link {
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-size: inherit;
+  font-family: inherit;
   color: var(--color-primary);
   font-weight: 600;
   text-decoration: none;

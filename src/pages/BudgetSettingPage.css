@@ -39,3 +39,16 @@
   padding: 40px 0;
   text-align: center;
 }
+
+.budget-page__recurring {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  margin-top: 40px;
+}
+
+.budget-page__recurring-layout {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  column-gap: 32px;
+  align-items: start;
+}

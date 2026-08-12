@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ExpenseForm, ExpenseList, useClosedMonths, useExpenses } from '../domains/expense'
 import { useBudgets } from '../domains/budget'
+import { useRecurringExpenses } from '../domains/recurringExpense'
 import { formatCurrency } from '../shared/utils/dateUtils'
 import { useCountUp } from '../shared/hooks/useCountUp'
 import './ExpensePage.css'
@@ -17,6 +18,36 @@ function ExpensePage() {
   const { isClosed, toggleClosed } = useClosedMonths()
   const monthClosed = isClosed(yearMonth)
   const total = expenses.reduce((sum, expense) => sum + expense.amount, 0)
+
+  const { recurringExpenses } = useRecurringExpenses()
+  const isCurrentMonth = yearMonth === getCurrentYearMonth()
+
+  const unloggedVariable = isCurrentMonth
+    ? recurringExpenses.filter(
+        (r) => r.amount === null && !expenses.some((e) => e.memo === r.memo),
+      )
+    : []
+
+  const [prefillMemo, setPrefillMemo] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!isCurrentMonth || isLoading) return
+
+    const today = new Date().getDate()
+    const missingFixed = recurringExpenses.filter(
+      (r) => r.amount !== null && r.dayOfMonth <= today && !expenses.some((e) => e.memo === r.memo),
+    )
+
+    for (const item of missingFixed) {
+      addExpense({
+        expenseDate: `${yearMonth}-${String(item.dayOfMonth).padStart(2, '0')}`,
+        amount: item.amount as number,
+        category: '기타',
+        memo: item.memo,
+      })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isCurrentMonth, isLoading, recurringExpenses, expenses])
 
   const { budgets } = useBudgets()
   const budget = budgets.find((b) => b.yearMonth === yearMonth)
@@ -146,20 +177,41 @@ function ExpensePage() {
                     </Link>
                   </div>
                 )}
-                <ExpenseForm onSubmit={addExpense} />
+                {unloggedVariable.map((item) => (
+                  <div key={item.id} className="expense-page__budget-nudge">
+                    <span>이번 달 {item.memo} 아직 입력 안 했어요</span>
+                    <button
+                      type="button"
+                      className="expense-page__budget-nudge-link"
+                      onClick={() => setPrefillMemo(item.memo)}
+                    >
+                      입력하기
+                    </button>
+                  </div>
+                ))}
+                <ExpenseForm
+                  key={prefillMemo ?? 'default'}
+                  onSubmit={(input) => {
+                    addExpense(input)
+                    setPrefillMemo(null)
+                  }}
+                  prefillMemo={prefillMemo ?? undefined}
+                />
               </>
             )}
 
-            <div
-              className={
-                showFloatingTotal
-                  ? 'expense-page__floating-total is-visible'
-                  : 'expense-page__floating-total'
-              }
-            >
-              <p className="expense-page__floating-total-label">이번 달 총 지출</p>
-              <p className="expense-page__floating-total-amount">{formatCurrency(total)}</p>
-            </div>
+            {!monthClosed && (
+              <div
+                className={
+                  showFloatingTotal
+                    ? 'expense-page__floating-total is-visible'
+                    : 'expense-page__floating-total'
+                }
+              >
+                <p className="expense-page__floating-total-label">이번 달 총 지출</p>
+                <p className="expense-page__floating-total-amount">{formatCurrency(total)}</p>
+              </div>
+            )}
           </div>
         </aside>
       </div>
