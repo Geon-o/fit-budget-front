@@ -114,11 +114,10 @@ function BudgetList({ budgets, onSave, openYearMonth, onToggle, isClosed, onEdit
                   {isEditing ? (
                     <input
                       className="budget-list__edit-input"
-                      type="number"
+                      type="text"
                       inputMode="numeric"
-                      min="1"
-                      value={monthlyBudget}
-                      onChange={(e) => setMonthlyBudget(e.target.value)}
+                      value={monthlyBudget ? Number(monthlyBudget).toLocaleString('ko-KR') : ''}
+                      onChange={(e) => setMonthlyBudget(e.target.value.replace(/[^0-9]/g, ''))}
                     />
                   ) : (
                     <span className="budget-list__value">
@@ -131,11 +130,10 @@ function BudgetList({ budgets, onSave, openYearMonth, onToggle, isClosed, onEdit
                   {isEditing ? (
                     <input
                       className="budget-list__edit-input"
-                      type="number"
+                      type="text"
                       inputMode="numeric"
-                      min="0"
-                      value={savingGoal}
-                      onChange={(e) => setSavingGoal(e.target.value)}
+                      value={savingGoal ? Number(savingGoal).toLocaleString('ko-KR') : ''}
+                      onChange={(e) => setSavingGoal(e.target.value.replace(/[^0-9]/g, ''))}
                     />
                   ) : (
                     <span className="budget-list__value">{formatCurrency(budget.savingGoal)}</span>

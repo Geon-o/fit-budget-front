@@ -91,13 +91,12 @@ function BudgetForm({ budgets, onSubmit, onYearMonthChange, disabled }: BudgetFo
       <label className="budget-form__field">
         <span className="budget-form__label">월 생활비 예산</span>
         <input
-          className="budget-form__input"
-          type="number"
+          className="budget-form__input budget-form__input--amount"
+          type="text"
           inputMode="numeric"
-          min="1"
           placeholder="0"
-          value={monthlyBudget}
-          onChange={(e) => setMonthlyBudget(e.target.value)}
+          value={monthlyBudget ? Number(monthlyBudget).toLocaleString('ko-KR') : ''}
+          onChange={(e) => setMonthlyBudget(e.target.value.replace(/[^0-9]/g, ''))}
           required
         />
       </label>
@@ -105,13 +104,12 @@ function BudgetForm({ budgets, onSubmit, onYearMonthChange, disabled }: BudgetFo
       <label className="budget-form__field">
         <span className="budget-form__label">목표 저축액</span>
         <input
-          className="budget-form__input"
-          type="number"
+          className="budget-form__input budget-form__input--amount"
+          type="text"
           inputMode="numeric"
-          min="0"
           placeholder="0"
-          value={savingGoal}
-          onChange={(e) => setSavingGoal(e.target.value)}
+          value={savingGoal ? Number(savingGoal).toLocaleString('ko-KR') : ''}
+          onChange={(e) => setSavingGoal(e.target.value.replace(/[^0-9]/g, ''))}
         />
       </label>
 
