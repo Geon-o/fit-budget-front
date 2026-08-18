@@ -8,6 +8,20 @@
   padding: 20px;
 }
 
+.budget-form__fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border: none;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.budget-form__fieldset:disabled {
+  opacity: 0.5;
+}
+
 .budget-form__field {
   display: flex;
   flex-direction: column;

@@ -25,6 +25,7 @@ function BudgetSettingPage() {
   } = useRecurringExpenses()
   const [year, setYear] = useState(getCurrentYear())
   const [openYearMonth, setOpenYearMonth] = useState<string | null>(null)
+  const [isEditingBudget, setIsEditingBudget] = useState(false)
   const [budgetFormYearMonth, setBudgetFormYearMonth] = useState(getCurrentYearMonth())
   const hasAutoOpened = useRef(false)
 
@@ -76,6 +77,7 @@ function BudgetSettingPage() {
             openYearMonth={openYearMonth}
             onToggle={setOpenYearMonth}
             isClosed={isClosed}
+            onEditingChange={setIsEditingBudget}
           />
         )}
       </div>
@@ -85,6 +87,7 @@ function BudgetSettingPage() {
           budgets={budgets}
           onSubmit={saveBudget}
           onYearMonthChange={setBudgetFormYearMonth}
+          disabled={isEditingBudget}
         />
       </aside>
 

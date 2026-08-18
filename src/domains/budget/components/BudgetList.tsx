@@ -9,9 +9,10 @@ interface BudgetListProps {
   openYearMonth: string | null
   onToggle: (yearMonth: string | null) => void
   isClosed: (yearMonth: string) => boolean
+  onEditingChange?: (isEditing: boolean) => void
 }
 
-function BudgetList({ budgets, onSave, openYearMonth, onToggle, isClosed }: BudgetListProps) {
+function BudgetList({ budgets, onSave, openYearMonth, onToggle, isClosed, onEditingChange }: BudgetListProps) {
   const [editingYearMonth, setEditingYearMonth] = useState<string | null>(null)
   const [monthlyBudget, setMonthlyBudget] = useState('')
   const [savingGoal, setSavingGoal] = useState('')
@@ -29,10 +30,12 @@ function BudgetList({ budgets, onSave, openYearMonth, onToggle, isClosed }: Budg
     setMonthlyBudget(String(budget.monthlyBudget))
     setSavingGoal(String(budget.savingGoal))
     setPaymentDate(budget.paymentDate)
+    onEditingChange?.(true)
   }
 
   function cancelEdit() {
     setEditingYearMonth(null)
+    onEditingChange?.(false)
   }
 
   function saveEdit(budget: Budget) {
@@ -49,6 +52,7 @@ function BudgetList({ budgets, onSave, openYearMonth, onToggle, isClosed }: Budg
       onSave({ yearMonth: budget.yearMonth, monthlyBudget: parsedBudget, savingGoal: parsedGoal, paymentDate })
     }
     setEditingYearMonth(null)
+    onEditingChange?.(false)
   }
 
   return (

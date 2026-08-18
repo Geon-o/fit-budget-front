@@ -20,9 +20,10 @@ interface BudgetFormProps {
   budgets: Budget[]
   onSubmit: (input: Omit<Budget, 'id'>) => void
   onYearMonthChange?: (yearMonth: string) => void
+  disabled?: boolean
 }
 
-function BudgetForm({ budgets, onSubmit, onYearMonthChange }: BudgetFormProps) {
+function BudgetForm({ budgets, onSubmit, onYearMonthChange, disabled }: BudgetFormProps) {
   const [yearMonth, setYearMonth] = useState(getCurrentYearMonth())
   const [monthlyBudget, setMonthlyBudget] = useState('')
   const [savingGoal, setSavingGoal] = useState('')
@@ -72,6 +73,7 @@ function BudgetForm({ budgets, onSubmit, onYearMonthChange }: BudgetFormProps) {
 
   return (
     <form className="budget-form" onSubmit={handleSubmit}>
+      <fieldset className="budget-form__fieldset" disabled={disabled}>
       <label className="budget-form__field">
         <span className="budget-form__label">대상 월</span>
         <input
@@ -126,6 +128,7 @@ function BudgetForm({ budgets, onSubmit, onYearMonthChange }: BudgetFormProps) {
       <button className="budget-form__submit" type="submit" disabled={alreadyRegistered}>
         등록하기
       </button>
+      </fieldset>
     </form>
   )
 }
