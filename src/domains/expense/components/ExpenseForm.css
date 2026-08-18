@@ -30,9 +30,26 @@
   border-radius: var(--radius-sm);
 }
 
+.expense-form__input--amount {
+  text-align: right;
+}
+
 .expense-form__input:focus {
   outline: 2px solid var(--color-primary);
   outline-offset: -1px;
+}
+
+.expense-form__input--highlight {
+  animation: expense-form-highlight 0.4s ease-in-out 2;
+}
+
+@keyframes expense-form-highlight {
+  0%, 100% {
+    box-shadow: none;
+  }
+  50% {
+    box-shadow: 0 0 0 2px var(--color-primary);
+  }
 }
 
 .expense-form__actions {

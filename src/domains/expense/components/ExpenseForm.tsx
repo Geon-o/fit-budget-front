@@ -1,8 +1,11 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
+import Select from '../../../shared/components/Select'
 import { EXPENSE_CATEGORIES } from '../../../shared/constants/categories'
 import type { Expense } from '../types/expense.types'
 import './ExpenseForm.css'
+
+const CATEGORY_OPTIONS = EXPENSE_CATEGORIES.map((c) => ({ value: c, label: c }))
 
 function getToday(): string {
   return new Date().toISOString().slice(0, 10)
@@ -16,6 +19,7 @@ interface ExpenseFormProps {
   compact?: boolean
   prefillCategory?: string
   prefillMemo?: string
+  prefillDate?: string
 }
 
 function ExpenseForm({
@@ -26,8 +30,9 @@ function ExpenseForm({
   compact,
   prefillCategory,
   prefillMemo,
+  prefillDate,
 }: ExpenseFormProps) {
-  const [expenseDate, setExpenseDate] = useState(initialValue?.expenseDate ?? getToday())
+  const [expenseDate, setExpenseDate] = useState(initialValue?.expenseDate ?? prefillDate ?? getToday())
   const [amount, setAmount] = useState(initialValue ? String(initialValue.amount) : '')
   const [category, setCategory] = useState<string>(
     initialValue?.category ?? prefillCategory ?? EXPENSE_CATEGORIES[0],
@@ -63,30 +68,24 @@ function ExpenseForm({
       <label className="expense-form__field">
         <span className="expense-form__label">금액</span>
         <input
-          className="expense-form__input"
-          type="number"
+          className={
+            prefillMemo
+              ? 'expense-form__input expense-form__input--amount expense-form__input--highlight'
+              : 'expense-form__input expense-form__input--amount'
+          }
+          type="text"
           inputMode="numeric"
-          min="1"
           placeholder="0"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
+          value={amount ? Number(amount).toLocaleString('ko-KR') : ''}
+          onChange={(e) => setAmount(e.target.value.replace(/[^0-9]/g, ''))}
+          autoFocus={!!prefillMemo}
           required
         />
       </label>
 
       <label className="expense-form__field">
         <span className="expense-form__label">카테고리</span>
-        <select
-          className="expense-form__input"
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-        >
-          {EXPENSE_CATEGORIES.map((c) => (
-            <option key={c} value={c}>
-              {c}
-            </option>
-          ))}
-        </select>
+        <Select options={CATEGORY_OPTIONS} value={category} onChange={setCategory} />
       </label>
 
       <label className="expense-form__field">

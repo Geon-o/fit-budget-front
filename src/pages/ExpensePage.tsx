@@ -29,6 +29,7 @@ function ExpensePage() {
     : []
 
   const [prefillMemo, setPrefillMemo] = useState<string | null>(null)
+  const [prefillDate, setPrefillDate] = useState<string | null>(null)
 
   useEffect(() => {
     if (!isCurrentMonth || isLoading) return
@@ -183,7 +184,10 @@ function ExpensePage() {
                     <button
                       type="button"
                       className="expense-page__budget-nudge-link"
-                      onClick={() => setPrefillMemo(item.memo)}
+                      onClick={() => {
+                        setPrefillMemo(item.memo)
+                        setPrefillDate(`${yearMonth}-${String(item.dayOfMonth).padStart(2, '0')}`)
+                      }}
                     >
                       입력하기
                     </button>
@@ -194,8 +198,11 @@ function ExpensePage() {
                   onSubmit={(input) => {
                     addExpense(input)
                     setPrefillMemo(null)
+                    setPrefillDate(null)
                   }}
                   prefillMemo={prefillMemo ?? undefined}
+                  prefillDate={prefillDate ?? undefined}
+                  prefillCategory={prefillMemo ? '공과금' : undefined}
                 />
               </>
             )}
