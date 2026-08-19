@@ -1,15 +1,11 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
+import { askAi } from '../api/aiApi'
 import './AiWidget.css'
 
 interface Message {
   role: 'user' | 'assistant'
   content: string
-}
-
-async function askMock(question: string): Promise<string> {
-  await new Promise((resolve) => setTimeout(resolve, 600))
-  return `(임시 응답) "${question}"에 대한 답변은 아직 연결되지 않았어요. 백엔드 연동 후 실제 분석 답변이 나올 거예요.`
 }
 
 function AiWidget() {
@@ -27,9 +23,17 @@ function AiWidget() {
     setInput('')
     setIsLoading(true)
 
-    const answer = await askMock(question)
-    setMessages((prev) => [...prev, { role: 'assistant', content: answer }])
-    setIsLoading(false)
+    try {
+      const answer = await askAi(question)
+      setMessages((prev) => [...prev, { role: 'assistant', content: answer }])
+    } catch {
+      setMessages((prev) => [
+        ...prev,
+        { role: 'assistant', content: 'AI 응답을 받지 못했어요. 잠시 후 다시 시도해주세요.' },
+      ])
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
