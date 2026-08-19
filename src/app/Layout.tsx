@@ -1,5 +1,6 @@
 import { NavLink, Outlet } from 'react-router-dom'
 import Logo from './Logo'
+import { AiWidget } from '../domains/ai'
 import './Layout.css'
 
 const NAV_ITEMS = [
@@ -35,6 +36,7 @@ function Layout() {
       <main className="app-main">
         <Outlet />
       </main>
+      <AiWidget />
     </div>
   )
 }
