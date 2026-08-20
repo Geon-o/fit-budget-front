@@ -1,7 +1,7 @@
 const API_BASE_URL = 'http://localhost:8089'
 
-export async function askAi(question: string): Promise<string> {
-  const res = await fetch(`${API_BASE_URL}/api/ai/query`, {
+export async function askAi(ledgerId: string, question: string): Promise<string> {
+  const res = await fetch(`${API_BASE_URL}/api/ledgers/${ledgerId}/ai/query`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ question }),

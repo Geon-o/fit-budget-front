@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ChangeEvent, FormEvent, KeyboardEvent } from 'react'
 import { askAi } from '../api/aiApi'
+import { useLedger } from '../../../app/providers/LedgerProvider'
 import './AiWidget.css'
 
 interface Message {
@@ -22,6 +23,7 @@ function renderWithBold(text: string) {
 }
 
 function AiWidget() {
+  const { ledgerId } = useLedger()
   const [isOpen, setIsOpen] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
@@ -37,7 +39,7 @@ function AiWidget() {
 
   const submitQuestion = async () => {
     const question = input.trim()
-    if (!question || isLoading || isOverLimit) return
+    if (!question || isLoading || isOverLimit || !ledgerId) return
 
     setMessages((prev) => [...prev, { role: 'user', content: question }])
     setInput('')
@@ -45,7 +47,7 @@ function AiWidget() {
     setIsLoading(true)
 
     try {
-      const answer = await askAi(question)
+      const answer = await askAi(ledgerId, question)
       setMessages((prev) => [...prev, { role: 'assistant', content: answer }])
     } catch {
       setMessages((prev) => [

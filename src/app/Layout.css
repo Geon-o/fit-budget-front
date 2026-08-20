@@ -26,6 +26,21 @@
   align-items: center;
 }
 
+.app-nav__ledger-button {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  border: var(--border-card);
+  border-radius: var(--radius-sm);
+  padding: 7px 12px;
+}
+
+.app-nav__ledger-button:hover {
+  color: var(--color-text);
+  background: var(--color-bg);
+}
+
 .app-nav__links {
   display: flex;
   gap: 28px;

@@ -8,14 +8,14 @@ import {
 import type { Expense } from '../types/expense.types'
 import { toYearMonth } from '../../../shared/utils/dateUtils'
 
-export function useExpenses(yearMonth: string) {
+export function useExpenses(ledgerId: string, yearMonth: string) {
   const [expenses, setExpenses] = useState<Expense[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     let cancelled = false
     setIsLoading(true)
-    fetchExpenses().then((data) => {
+    fetchExpenses(ledgerId).then((data) => {
       if (!cancelled) {
         setExpenses(data)
         setIsLoading(false)
@@ -24,25 +24,31 @@ export function useExpenses(yearMonth: string) {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [ledgerId])
 
-  const addExpense = useCallback(async (input: Omit<Expense, 'id' | 'source'>) => {
-    const created = await addExpenseApi(input)
-    setExpenses((prev) => [...prev, created])
-  }, [])
+  const addExpense = useCallback(
+    async (input: Omit<Expense, 'id' | 'source'>) => {
+      const created = await addExpenseApi(ledgerId, input)
+      setExpenses((prev) => [...prev, created])
+    },
+    [ledgerId],
+  )
 
   const updateExpense = useCallback(
     async (id: string, input: Omit<Expense, 'id' | 'source'>) => {
-      const updated = await updateExpenseApi(id, input)
+      const updated = await updateExpenseApi(ledgerId, id, input)
       setExpenses((prev) => prev.map((expense) => (expense.id === id ? updated : expense)))
     },
-    [],
+    [ledgerId],
   )
 
-  const deleteExpense = useCallback(async (id: string) => {
-    await deleteExpenseApi(id)
-    setExpenses((prev) => prev.filter((expense) => expense.id !== id))
-  }, [])
+  const deleteExpense = useCallback(
+    async (id: string) => {
+      await deleteExpenseApi(ledgerId, id)
+      setExpenses((prev) => prev.filter((expense) => expense.id !== id))
+    },
+    [ledgerId],
+  )
 
   const filteredExpenses = useMemo(
     () => expenses.filter((expense) => toYearMonth(expense.expenseDate) === yearMonth),

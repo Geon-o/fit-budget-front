@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { ExpenseForm, ExpenseList, useClosedMonths, useExpenses } from '../domains/expense'
 import { useBudgets } from '../domains/budget'
 import { useRecurringExpenses } from '../domains/recurringExpense'
+import { useLedger } from '../app/providers/LedgerProvider'
 import { formatCurrency } from '../shared/utils/dateUtils'
 import { useCountUp } from '../shared/hooks/useCountUp'
 import './ExpensePage.css'
@@ -13,13 +14,37 @@ function getCurrentYearMonth(): string {
 }
 
 function ExpensePage() {
+  const { ledgerId, ledgers, isLoading: isLedgerLoading } = useLedger()
   const [yearMonth, setYearMonth] = useState(getCurrentYearMonth())
-  const { expenses, isLoading, addExpense, updateExpense, deleteExpense } = useExpenses(yearMonth)
-  const { isClosed, toggleClosed } = useClosedMonths()
+
+  if (!ledgerId) {
+    return (
+      <p className="expense-page__empty">
+        {isLedgerLoading || ledgers.length > 0
+          ? '불러오는 중...'
+          : "가계부를 먼저 만들어주세요 (상단 '가계부 변경')"}
+      </p>
+    )
+  }
+
+  return <ExpensePageContent ledgerId={ledgerId} yearMonth={yearMonth} setYearMonth={setYearMonth} />
+}
+
+function ExpensePageContent({
+  ledgerId,
+  yearMonth,
+  setYearMonth,
+}: {
+  ledgerId: string
+  yearMonth: string
+  setYearMonth: (yearMonth: string) => void
+}) {
+  const { expenses, isLoading, addExpense, updateExpense, deleteExpense } = useExpenses(ledgerId, yearMonth)
+  const { isClosed, toggleClosed } = useClosedMonths(ledgerId)
   const monthClosed = isClosed(yearMonth)
   const total = expenses.reduce((sum, expense) => sum + expense.amount, 0)
 
-  const { recurringExpenses } = useRecurringExpenses()
+  const { recurringExpenses } = useRecurringExpenses(ledgerId)
   const isCurrentMonth = yearMonth === getCurrentYearMonth()
 
   const unloggedVariable = isCurrentMonth
@@ -50,7 +75,7 @@ function ExpensePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isCurrentMonth, isLoading, recurringExpenses, expenses])
 
-  const { budgets } = useBudgets()
+  const { budgets } = useBudgets(ledgerId)
   const budget = budgets.find((b) => b.yearMonth === yearMonth)
   const monthlyBudget = budget?.monthlyBudget ?? 0
   const savingGoal = budget?.savingGoal ?? 0

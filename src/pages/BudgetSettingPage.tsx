@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { BudgetForm, BudgetList, useBudgets } from '../domains/budget'
 import { useClosedMonths } from '../domains/expense'
 import { RecurringExpenseForm, RecurringExpenseList, useRecurringExpenses } from '../domains/recurringExpense'
+import { useLedger } from '../app/providers/LedgerProvider'
 import Select from '../shared/components/Select'
 import './BudgetSettingPage.css'
 
@@ -15,14 +16,28 @@ function getCurrentYearMonth(): string {
 }
 
 function BudgetSettingPage() {
-  const { budgets, isLoading, saveBudget } = useBudgets()
-  const { isClosed } = useClosedMonths()
+  const { ledgerId, ledgers, isLoading: isLedgerLoading } = useLedger()
+  if (!ledgerId) {
+    return (
+      <p className="budget-page__empty">
+        {isLedgerLoading || ledgers.length > 0
+          ? '불러오는 중...'
+          : "가계부를 먼저 만들어주세요 (상단 '가계부 변경')"}
+      </p>
+    )
+  }
+  return <BudgetSettingPageContent ledgerId={ledgerId} />
+}
+
+function BudgetSettingPageContent({ ledgerId }: { ledgerId: string }) {
+  const { budgets, isLoading, saveBudget } = useBudgets(ledgerId)
+  const { isClosed } = useClosedMonths(ledgerId)
   const {
     recurringExpenses,
     isLoading: isRecurringLoading,
     addRecurringExpense,
     deleteRecurringExpense,
-  } = useRecurringExpenses()
+  } = useRecurringExpenses(ledgerId)
   const [year, setYear] = useState(getCurrentYear())
   const [openYearMonth, setOpenYearMonth] = useState<string | null>(null)
   const [isEditingBudget, setIsEditingBudget] = useState(false)

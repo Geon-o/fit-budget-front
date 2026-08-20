@@ -2,13 +2,13 @@ import { useCallback, useEffect, useState } from 'react'
 import { fetchBudgets, saveBudget as saveBudgetApi } from '../api/budgetApi'
 import type { Budget } from '../types/budget.types'
 
-export function useBudgets() {
+export function useBudgets(ledgerId: string) {
   const [budgets, setBudgets] = useState<Budget[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     let cancelled = false
-    fetchBudgets().then((data) => {
+    fetchBudgets(ledgerId).then((data) => {
       if (!cancelled) {
         setBudgets(data)
         setIsLoading(false)
@@ -17,20 +17,23 @@ export function useBudgets() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [ledgerId])
 
-  const saveBudget = useCallback(async (input: Omit<Budget, 'id'>) => {
-    const saved = await saveBudgetApi(input)
-    setBudgets((prev) => {
-      const index = prev.findIndex((b) => b.yearMonth === saved.yearMonth)
-      if (index >= 0) {
-        const next = [...prev]
-        next[index] = saved
-        return next
-      }
-      return [...prev, saved]
-    })
-  }, [])
+  const saveBudget = useCallback(
+    async (input: Omit<Budget, 'id'>) => {
+      const saved = await saveBudgetApi(ledgerId, input)
+      setBudgets((prev) => {
+        const index = prev.findIndex((b) => b.yearMonth === saved.yearMonth)
+        if (index >= 0) {
+          const next = [...prev]
+          next[index] = saved
+          return next
+        }
+        return [...prev, saved]
+      })
+    },
+    [ledgerId],
+  )
 
   return { budgets, isLoading, saveBudget }
 }

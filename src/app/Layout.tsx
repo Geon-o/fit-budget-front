@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import Logo from './Logo'
 import { AiWidget } from '../domains/ai'
 import './Layout.css'
@@ -10,6 +10,9 @@ const NAV_ITEMS = [
 ]
 
 function Layout() {
+  const { pathname } = useLocation()
+  const isLedgerListPage = pathname === '/ledgers'
+
   return (
     <div className="app-layout">
       <header className="app-nav">
@@ -17,20 +20,27 @@ function Layout() {
           <NavLink to="/" className="app-nav__logo" aria-label="FitBudget">
             <Logo />
           </NavLink>
-          <nav className="app-nav__links">
-            {NAV_ITEMS.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                end={item.end}
-                className={({ isActive }) =>
-                  isActive ? 'app-nav__link app-nav__link--active' : 'app-nav__link'
-                }
-              >
-                {item.label}
+          {!isLedgerListPage && (
+            <>
+              <NavLink to="/ledgers" className="app-nav__ledger-button">
+                가계부 변경
               </NavLink>
-            ))}
-          </nav>
+              <nav className="app-nav__links">
+                {NAV_ITEMS.map((item) => (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    end={item.end}
+                    className={({ isActive }) =>
+                      isActive ? 'app-nav__link app-nav__link--active' : 'app-nav__link'
+                    }
+                  >
+                    {item.label}
+                  </NavLink>
+                ))}
+              </nav>
+            </>
+          )}
         </div>
       </header>
       <main className="app-main">

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useExpenses, useMonthlyTotals } from '../domains/expense'
 import { useBudgets } from '../domains/budget'
+import { useLedger } from '../app/providers/LedgerProvider'
 import {
   BudgetTrendChart,
   CategoryBreakdown,
@@ -24,12 +25,26 @@ function toYearMonth(year: number, month: number): string {
 }
 
 function DashboardPage() {
+  const { ledgerId, ledgers, isLoading: isLedgerLoading } = useLedger()
+  if (!ledgerId) {
+    return (
+      <p className="dashboard-page__empty">
+        {isLedgerLoading || ledgers.length > 0
+          ? '불러오는 중...'
+          : "가계부를 먼저 만들어주세요 (상단 '가계부 변경')"}
+      </p>
+    )
+  }
+  return <DashboardPageContent ledgerId={ledgerId} />
+}
+
+function DashboardPageContent({ ledgerId }: { ledgerId: string }) {
   const [{ year, month }, setDate] = useState(getCurrentDate)
   const yearMonth = toYearMonth(year, month)
 
-  const { expenses, isLoading } = useExpenses(yearMonth)
-  const { budgets } = useBudgets()
-  const { totals: monthlyTotals } = useMonthlyTotals()
+  const { expenses, isLoading } = useExpenses(ledgerId, yearMonth)
+  const { budgets } = useBudgets(ledgerId)
+  const { totals: monthlyTotals } = useMonthlyTotals(ledgerId)
 
   const budget = budgets.find((b) => b.yearMonth === yearMonth)
   const monthlyBudget = budget?.monthlyBudget ?? 0

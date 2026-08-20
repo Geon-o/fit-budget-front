@@ -2,13 +2,13 @@ import { useEffect, useState } from 'react'
 import { fetchExpenses } from '../api/expenseApi'
 import { toYearMonth } from '../../../shared/utils/dateUtils'
 
-export function useMonthlyTotals() {
+export function useMonthlyTotals(ledgerId: string) {
   const [totals, setTotals] = useState<Map<string, number>>(new Map())
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     let cancelled = false
-    fetchExpenses().then((data) => {
+    fetchExpenses(ledgerId).then((data) => {
       if (cancelled) return
       const map = new Map<string, number>()
       for (const expense of data) {
@@ -21,7 +21,7 @@ export function useMonthlyTotals() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [ledgerId])
 
   return { totals, isLoading }
 }
