@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import type { FormEvent } from 'react'
+import { useRef, useState } from 'react'
+import type { ChangeEvent, FormEvent, KeyboardEvent } from 'react'
 import { askAi } from '../api/aiApi'
 import './AiWidget.css'
 
@@ -8,19 +8,25 @@ interface Message {
   content: string
 }
 
+const MAX_QUESTION_LENGTH = 500
+const COUNTER_THRESHOLD = 400
+
 function AiWidget() {
   const [isOpen, setIsOpen] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault()
+  const isOverLimit = input.length > MAX_QUESTION_LENGTH
+
+  const submitQuestion = async () => {
     const question = input.trim()
-    if (!question || isLoading) return
+    if (!question || isLoading || isOverLimit) return
 
     setMessages((prev) => [...prev, { role: 'user', content: question }])
     setInput('')
+    if (textareaRef.current) textareaRef.current.style.height = 'auto'
     setIsLoading(true)
 
     try {
@@ -33,6 +39,26 @@ function AiWidget() {
       ])
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault()
+    submitQuestion()
+  }
+
+  const handleChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
+    setInput(e.target.value)
+    const textarea = textareaRef.current
+    if (!textarea) return
+    textarea.style.height = 'auto'
+    textarea.style.height = `${textarea.scrollHeight}px`
+  }
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      submitQuestion()
     }
   }
 
@@ -92,17 +118,44 @@ function AiWidget() {
             )}
           </div>
 
-          <form className="ai-widget__input-row" onSubmit={handleSubmit}>
-            <input
-              className="ai-widget__input"
-              type="text"
+          <form
+            className={isOverLimit ? 'ai-widget__composer ai-widget__composer--over-limit' : 'ai-widget__composer'}
+            onSubmit={handleSubmit}
+          >
+            <textarea
+              ref={textareaRef}
+              className="ai-widget__composer-input"
               placeholder="무엇이든 물어보세요"
               value={input}
-              onChange={(e) => setInput(e.target.value)}
+              onChange={handleChange}
+              onKeyDown={handleKeyDown}
+              rows={1}
             />
-            <button className="ai-widget__send" type="submit" disabled={isLoading}>
-              전송
-            </button>
+            <div className="ai-widget__composer-footer">
+              <span className={isOverLimit ? 'ai-widget__counter ai-widget__counter--over' : 'ai-widget__counter'}>
+                {isOverLimit
+                  ? `${MAX_QUESTION_LENGTH}자를 넘었어요`
+                  : input.length > COUNTER_THRESHOLD
+                    ? `${input.length}/${MAX_QUESTION_LENGTH}`
+                    : ''}
+              </span>
+              <button
+                className="ai-widget__send"
+                type="submit"
+                disabled={isLoading || isOverLimit}
+                aria-label="전송"
+              >
+                <svg viewBox="0 0 20 20" width="16" height="16" fill="none">
+                  <path
+                    d="M10 15V5M10 5 5 10M10 5l5 5"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            </div>
           </form>
         </div>
       )}

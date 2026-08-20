@@ -60,8 +60,8 @@
   position: fixed;
   right: 56px;
   bottom: 132px;
-  width: 340px;
-  height: 440px;
+  width: 420px;
+  height: 600px;
   background: linear-gradient(160deg, rgba(15, 157, 104, 0.16), rgba(255, 255, 255, 0.4));
   border: 1px solid rgba(15, 157, 104, 0.35);
   border-radius: 28px;
@@ -126,37 +126,72 @@
   color: var(--color-text);
 }
 
-.ai-widget__input-row {
+.ai-widget__composer {
   display: flex;
-  gap: 8px;
-  padding: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.4);
-  background: rgba(255, 255, 255, 0.15);
-}
-
-.ai-widget__input {
-  flex: 1;
+  flex-direction: column;
+  margin: 12px;
   border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: var(--radius-md);
   background: rgba(255, 255, 255, 0.4);
-  color: var(--color-text);
-  font-size: 13px;
-  padding: 9px 12px;
-  border-radius: var(--radius-sm);
+  transition: border-color 0.15s ease;
 }
 
-.ai-widget__input:focus {
-  outline: 2px solid var(--color-primary);
-  outline-offset: -1px;
+.ai-widget__composer:focus-within {
+  border-color: var(--color-primary);
+}
+
+.ai-widget__composer--over-limit {
+  border-color: var(--color-danger);
+}
+
+.ai-widget__composer-input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.4;
+  padding: 10px 12px 4px;
+  resize: none;
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.ai-widget__composer-input:focus {
+  outline: none;
+}
+
+.ai-widget__composer-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 8px 8px 12px;
+  min-height: 24px;
+}
+
+.ai-widget__counter {
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+}
+
+.ai-widget__counter--over {
+  color: var(--color-danger);
+  font-weight: 600;
 }
 
 .ai-widget__send {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
   border: none;
+  border-radius: 50%;
   background: var(--color-primary);
   color: #ffffff;
-  font-size: 13px;
-  font-weight: 600;
-  padding: 0 14px;
-  border-radius: var(--radius-sm);
 }
 
 .ai-widget__send:disabled {
