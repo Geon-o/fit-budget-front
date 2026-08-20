@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { ChangeEvent, FormEvent, KeyboardEvent } from 'react'
 import { askAi } from '../api/aiApi'
 import './AiWidget.css'
@@ -11,14 +11,29 @@ interface Message {
 const MAX_QUESTION_LENGTH = 500
 const COUNTER_THRESHOLD = 400
 
+function renderWithBold(text: string) {
+  return text.split(/(\*\*.+?\*\*)/g).map((part, i) =>
+    part.startsWith('**') && part.endsWith('**') ? (
+      <strong key={i}>{part.slice(2, -2)}</strong>
+    ) : (
+      part
+    ),
+  )
+}
+
 function AiWidget() {
   const [isOpen, setIsOpen] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const isOverLimit = input.length > MAX_QUESTION_LENGTH
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages, isLoading])
 
   const submitQuestion = async () => {
     const question = input.trim()
@@ -108,7 +123,7 @@ function AiWidget() {
                     : 'ai-widget__bubble ai-widget__bubble--assistant'
                 }
               >
-                {message.content}
+                {message.role === 'assistant' ? renderWithBold(message.content) : message.content}
               </div>
             ))}
             {isLoading && (
@@ -116,6 +131,7 @@ function AiWidget() {
                 생각 중...
               </div>
             )}
+            <div ref={messagesEndRef} />
           </div>
 
           <form
