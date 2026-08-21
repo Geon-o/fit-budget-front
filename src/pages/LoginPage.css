@@ -1,0 +1,250 @@
+.login-page {
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+  background: var(--color-bg);
+}
+
+.login-page__content {
+  width: 100%;
+  max-width: 1000px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 64px;
+}
+
+.login-page__left {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.login-page__logo {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-primary);
+  letter-spacing: -0.01em;
+}
+
+.login-page__headline {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.login-page__lead {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+}
+
+.login-page__features {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.login-page__feature {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.login-page__feature-dot {
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-primary);
+}
+
+.login-page__buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.login-page__button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex: 1;
+  height: 46px;
+  border-radius: var(--radius-md);
+  border: var(--border-card);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.login-page__icon {
+  flex-shrink: 0;
+}
+
+.login-page__button--google {
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.login-page__button--naver {
+  background: #03c75a;
+  border-color: #03c75a;
+  color: #ffffff;
+}
+
+.login-page__right {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-page__glow {
+  position: absolute;
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  background: var(--color-primary-bg);
+  filter: blur(40px);
+  opacity: 0.8;
+}
+
+.login-page__preview {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  border-radius: var(--radius-lg);
+  border: var(--border-card);
+  background: var(--color-surface);
+  box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.18);
+  transform: rotate(-2deg);
+  overflow: hidden;
+}
+
+.login-page__preview-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.login-page__preview-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-border);
+}
+
+.login-page__preview-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.login-page__preview-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.login-page__preview-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+}
+
+.login-page__preview-stat-label {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}
+
+.login-page__preview-stat-value {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.login-page__preview-stat-value--accent {
+  color: var(--color-primary);
+}
+
+.login-page__preview-week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.login-page__preview-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 5px;
+  border-radius: 6px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+}
+
+.login-page__preview-cell--today {
+  outline: 1.5px solid var(--color-primary);
+  outline-offset: -1.5px;
+}
+
+.login-page__preview-day {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.login-page__preview-spent {
+  font-size: 8.5px;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.login-page__preview-limit {
+  font-size: 8.5px;
+  color: var(--color-text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 860px) {
+  .login-page__content {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .login-page__right {
+    order: -1;
+  }
+
+  .login-page__preview {
+    max-width: 360px;
+    transform: none;
+  }
+
+  .login-page__headline {
+    font-size: 26px;
+  }
+
+  .login-page__buttons {
+    flex-direction: column;
+  }
+}

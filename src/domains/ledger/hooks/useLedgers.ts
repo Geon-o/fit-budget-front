@@ -7,9 +7,14 @@ export function useLedgers() {
   const [isLoading, setIsLoading] = useState(true)
 
   const refetch = useCallback(async () => {
-    const data = await fetchLedgers()
-    setLedgers(data)
-    return data
+    try {
+      const data = await fetchLedgers()
+      setLedgers(data)
+      return data
+    } catch {
+      setLedgers([])
+      return []
+    }
   }, [])
 
   useEffect(() => {

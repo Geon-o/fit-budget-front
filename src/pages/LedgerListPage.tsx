@@ -22,7 +22,7 @@ function LedgerListPage() {
   const selectLedger = (id: string) => {
     if (editingId) return
     setLedgerId(id)
-    navigate('/')
+    navigate('/dashboard')
   }
 
   const submitNewLedger = async () => {

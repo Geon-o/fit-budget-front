@@ -3,3 +3,10 @@ export interface Ledger {
   name: string
   color: string | null
 }
+
+export interface LedgerMember {
+  id: string
+  userId: string
+  email: string
+  name: string | null
+}

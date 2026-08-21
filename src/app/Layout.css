@@ -44,7 +44,33 @@
 .app-nav__links {
   display: flex;
   gap: 28px;
+}
+
+.app-nav__account {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   margin-left: auto;
+}
+
+.app-nav__email {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.app-nav__logout {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: var(--border-card);
+  border-radius: var(--radius-sm);
+  padding: 7px 12px;
+}
+
+.app-nav__logout:hover {
+  color: var(--color-text);
+  background: var(--color-bg);
 }
 
 .app-nav__link {
