@@ -34,27 +34,36 @@ function ExpenseCalendar({
     return map
   }, [expenses])
 
-  // 남은 지출 가능액을 남은 일수로 나눠 하루 권장액을 구하고, 그날 실제 지출을 반영해
-  // 다음 날의 권장액을 다시 계산한다. 안 쓴 날의 여유분은 다음 날로 이월된다.
-  // ponytail: 이월분이 말일 한두 날에 몰리면 숫자가 비정상적으로 튀어 보여서,
-  // 표시용으로만 기준선(균등 분배액)의 3배로 상한을 둔다. 실제 잔여 예산은 SummaryCards에서 정확히 보여줌.
+  // 하루 기준선(균등 분배액)은 고정. 실제 지난 날짜는 기준선보다 더 썼으면 다음 날 한도가 줄고,
+  // 덜 썼으면 다음 날 한도가 (기준선 + 남은 이월분)만큼 늘어난다.
+  // 아직 지나지 않은 미래 날짜는 실제로 안 쓸지 알 수 없으므로 이월을 미리 가정하지 않고,
+  // 오늘 시점까지 반영된 한도를 그대로 고정해서 보여준다.
   const recommendedByDay = useMemo(() => {
     const spendable = monthlyBudget - savingGoal
     const baseline = spendable / daysInMonth
-    const cap = baseline * 3
+    const todayDate = new Date()
+    todayDate.setHours(0, 0, 0, 0)
+
     const result: (number | null)[] = []
-    let remainingSpendable = spendable
-    let remainingDays = daysInMonth
+    let carry = 0
+    let frozenRaw: number | null = null
 
     for (let day = 1; day <= daysInMonth; day++) {
-      const raw = remainingSpendable / remainingDays
-      result.push(monthlyBudget > 0 ? Math.floor(Math.min(raw, cap)) : null)
-      remainingSpendable -= spentByDay.get(day) ?? 0
-      remainingDays -= 1
+      const isFuture = new Date(year, month - 1, day) > todayDate
+      let raw: number
+      if (isFuture) {
+        frozenRaw ??= baseline + carry
+        raw = frozenRaw
+      } else {
+        raw = baseline + carry
+        carry = raw - (spentByDay.get(day) ?? 0)
+      }
+
+      result.push(monthlyBudget > 0 ? Math.floor(Math.max(raw, 0)) : null)
     }
 
     return result
-  }, [spentByDay, monthlyBudget, savingGoal, daysInMonth])
+  }, [spentByDay, monthlyBudget, savingGoal, daysInMonth, year, month])
 
   const today = new Date()
   const isCurrentMonth = today.getFullYear() === year && today.getMonth() + 1 === month

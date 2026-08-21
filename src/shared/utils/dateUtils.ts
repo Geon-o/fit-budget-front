@@ -3,7 +3,7 @@ export function toYearMonth(dateStr: string): string {
 }
 
 export function formatCurrency(amount: number): string {
-  return `${amount.toLocaleString('ko-KR')}원`
+  return `${Math.round(amount).toLocaleString('ko-KR')}원`
 }
 
 export function formatYearMonth(yearMonth: string): string {
