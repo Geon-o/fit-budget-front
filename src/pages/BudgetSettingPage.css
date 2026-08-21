@@ -51,4 +51,5 @@
   grid-template-columns: 1fr 300px;
   column-gap: 32px;
   align-items: start;
+  margin-top: 16px;
 }
