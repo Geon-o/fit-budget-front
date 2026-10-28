@@ -1,0 +1,20 @@
+export function toYearMonth(dateStr: string): string {
+  return dateStr.slice(0, 7) // YYYY-MM
+}
+
+export function formatCurrency(amount: number): string {
+  return `${Math.round(amount).toLocaleString('ko-KR')}원`
+}
+
+export function formatYearMonth(yearMonth: string): string {
+  const [year, month] = yearMonth.split('-')
+  return `${year}년 ${Number(month)}월`
+}
+
+export function getDaysUntil(dateStr: string): number {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const target = new Date(dateStr)
+  target.setHours(0, 0, 0, 0)
+  return Math.round((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+}
