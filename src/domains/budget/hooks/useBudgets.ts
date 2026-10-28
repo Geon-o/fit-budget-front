@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useFocusEffect } from 'expo-router'
+import { useCallback, useState } from 'react'
 import { fetchBudgets, saveBudget as saveBudgetApi } from '../api/budgetApi'
 import type { Budget } from '../types/budget.types'
 
@@ -6,18 +7,21 @@ export function useBudgets(ledgerId: string) {
   const [budgets, setBudgets] = useState<Budget[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
-  useEffect(() => {
-    let cancelled = false
-    fetchBudgets(ledgerId).then((data) => {
-      if (!cancelled) {
-        setBudgets(data)
-        setIsLoading(false)
+  // 탭 화면은 마운트된 채로 남아서, 예산 탭에서 바꾼 값이 보이도록 화면에 들어올 때마다 다시 불러온다.
+  useFocusEffect(
+    useCallback(() => {
+      let cancelled = false
+      fetchBudgets(ledgerId).then((data) => {
+        if (!cancelled) {
+          setBudgets(data)
+          setIsLoading(false)
+        }
+      })
+      return () => {
+        cancelled = true
       }
-    })
-    return () => {
-      cancelled = true
-    }
-  }, [ledgerId])
+    }, [ledgerId]),
+  )
 
   const saveBudget = useCallback(
     async (input: Omit<Budget, 'id'>) => {
