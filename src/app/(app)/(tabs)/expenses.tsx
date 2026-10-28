@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { ExpenseFormSheet, useExpenses } from '../../../domains/expense'
+import { useBudgets } from '../../../domains/budget'
+import { ExpenseFormSheet, useClosedMonths, useExpenses } from '../../../domains/expense'
 import type { Expense } from '../../../domains/expense'
 import { useLedger } from '../../../providers/LedgerProvider'
 import { useHideTabBarOnScroll } from '../../../providers/TabBarProvider'
@@ -19,17 +20,25 @@ export default function Expenses() {
   return <ExpensesContent ledgerId={ledgerId} ledgerName={ledger?.name ?? ''} />
 }
 
-// ponytail: 웹의 월 마감·고정지출 자동 입력·예산 미설정 안내는 아직 미이식
+// ponytail: 웹의 고정지출 자동 입력·예산 미설정 안내는 아직 미이식
 function ExpensesContent({ ledgerId, ledgerName }: { ledgerId: string; ledgerName: string }) {
   const insets = useSafeAreaInsets()
   const hideTabBarOnScroll = useHideTabBarOnScroll()
   const monthState = useMonth()
   const { month, yearMonth, isCurrentMonth } = monthState
   const { expenses, isLoading, addExpense, updateExpense, deleteExpense } = useExpenses(ledgerId, yearMonth)
+  const { budgets } = useBudgets(ledgerId)
+  const { isClosed, toggleClosed } = useClosedMonths(ledgerId)
+  const closed = isClosed(yearMonth)
+  const budget = budgets.find((b) => b.yearMonth === yearMonth)
   // null = 닫힘, 'new' = 추가, Expense = 수정
   const [sheet, setSheet] = useState<'new' | Expense | null>(null)
 
   const total = expenses.reduce((sum, e) => sum + e.amount, 0)
+
+  // 마감된 달은 지출을 바꿀 수 없고, 대신 목표 저축 대비 결과를 보여준다
+  const toggleClose = () =>
+    toggleClosed(yearMonth).catch((e) => Alert.alert('오류', e instanceof Error ? e.message : '처리하지 못했어요'))
   // 최신 날짜가 위로 오게 날짜별로 묶는다
   const groups = useMemo(() => {
     const map = new Map<string, Expense[]>()
@@ -51,14 +60,23 @@ function ExpensesContent({ ledgerId, ledgerName }: { ledgerId: string; ledgerNam
         <MonthNav month={monthState} />
 
         <View style={styles.hero}>
-          <Text style={styles.heroLabel}>{isCurrentMonth ? '이번 달' : `${month}월`} 총 지출</Text>
+          <View style={styles.heroTop}>
+            <Text style={styles.heroLabel}>{isCurrentMonth ? '이번 달' : `${month}월`} 총 지출</Text>
+            <Pressable onPress={toggleClose} hitSlop={8} style={[styles.closeChip, closed && styles.closeChipOn]}>
+              <Text style={[styles.closeChipText, closed && { color: colors.surface }]}>{closed ? '마감됨 · 취소' : '마감하기'}</Text>
+            </Pressable>
+          </View>
           <Text style={styles.heroValue}>{formatCurrency(total)}</Text>
           <Text style={styles.heroSub}>{expenses.length}건</Text>
         </View>
 
-        <Pressable style={styles.add} onPress={() => setSheet('new')} android_ripple={{ color: 'rgba(255,255,255,0.2)' }}>
-          <Text style={styles.addText}>+ 지출 추가</Text>
-        </Pressable>
+        {closed ? (
+          <ClosedSummary monthlyBudget={budget?.monthlyBudget ?? 0} savingGoal={budget?.savingGoal ?? 0} total={total} />
+        ) : (
+          <Pressable style={styles.add} onPress={() => setSheet('new')} android_ripple={{ color: 'rgba(255,255,255,0.2)' }}>
+            <Text style={styles.addText}>+ 지출 추가</Text>
+          </Pressable>
+        )}
 
         {isLoading ? (
           <ActivityIndicator color={colors.subtle} style={{ marginTop: 24 }} />
@@ -81,7 +99,7 @@ function ExpensesContent({ ledgerId, ledgerName }: { ledgerId: string; ledgerNam
                     <Pressable
                       key={e.id}
                       style={styles.row}
-                      onPress={() => setSheet(e)}
+                      onPress={closed ? undefined : () => setSheet(e)}
                       android_ripple={{ color: 'rgba(0,0,0,0.05)' }}
                     >
                       <Text style={[styles.icon, { backgroundColor: style.bg }]}>{style.icon}</Text>
@@ -112,6 +130,32 @@ function ExpensesContent({ ledgerId, ledgerName }: { ledgerId: string; ledgerNam
   )
 }
 
+function ClosedSummary({ monthlyBudget, savingGoal, total }: { monthlyBudget: number; savingGoal: number; total: number }) {
+  const remaining = monthlyBudget - total
+  const gap = remaining - savingGoal
+  const result =
+    gap > 0 ? `목표보다 ${formatCurrency(gap)} 더 모았어요` : gap < 0 ? `목표보다 ${formatCurrency(-gap)} 덜 모았어요` : '목표한 금액만큼 정확히 모았어요'
+  return (
+    <View style={styles.summary}>
+      <SummaryRow label="예산" value={formatCurrency(monthlyBudget)} />
+      <SummaryRow label="지출" value={formatCurrency(total)} />
+      <View style={styles.summaryDivider} />
+      <SummaryRow label="잔여 예산" value={formatCurrency(remaining)} />
+      <SummaryRow label="목표 저축액" value={formatCurrency(savingGoal)} />
+      <Text style={[styles.summaryResult, { color: gap < 0 ? colors.danger : colors.accent }]}>{result}</Text>
+    </View>
+  )
+}
+
+function SummaryRow({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={styles.summaryRow}>
+      <Text style={styles.summaryLabel}>{label}</Text>
+      <Text style={styles.summaryValue}>{value}</Text>
+    </View>
+  )
+}
+
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.bg },
   container: { paddingHorizontal: 20, gap: 12 },
@@ -119,6 +163,16 @@ const styles = StyleSheet.create({
   title: { fontSize: 28, fontWeight: '800', color: colors.ink, letterSpacing: -0.8 },
   // 그림자 대신 1px 보더의 플랫 카드
   hero: { backgroundColor: colors.surface, borderRadius: 16, borderWidth: 1, borderColor: colors.line, padding: 20, gap: 4 },
+  heroTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  closeChip: { borderWidth: 1, borderColor: colors.line, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5 },
+  closeChipOn: { backgroundColor: colors.ink, borderColor: colors.ink },
+  closeChipText: { fontSize: 13, fontWeight: '600', color: colors.ink },
+  summary: { backgroundColor: colors.surface, borderRadius: 12, borderWidth: 1, borderColor: colors.line, padding: 16, gap: 10 },
+  summaryRow: { flexDirection: 'row', justifyContent: 'space-between' },
+  summaryLabel: { fontSize: 14, color: colors.subtle },
+  summaryValue: { fontSize: 15, fontWeight: '600', color: colors.ink, fontVariant: ['tabular-nums'] },
+  summaryDivider: { height: 1, backgroundColor: colors.line },
+  summaryResult: { fontSize: 16, fontWeight: '700', marginTop: 4 },
   heroLabel: { fontSize: 14, fontWeight: '600', color: colors.subtle },
   heroValue: { fontSize: 40, fontWeight: '800', color: colors.ink, letterSpacing: -1.5, fontVariant: ['tabular-nums'] },
   heroSub: { fontSize: 14, color: colors.subtle },

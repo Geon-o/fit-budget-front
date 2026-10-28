@@ -4,6 +4,7 @@ import { ActivityIndicator, Alert, KeyboardAvoidingView, Pressable, ScrollView, 
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useBudgets } from '../../../domains/budget'
 import type { Budget } from '../../../domains/budget'
+import { useClosedMonths } from '../../../domains/expense'
 import { useRecurringExpenses } from '../../../domains/recurringExpense'
 import type { RecurringExpense } from '../../../domains/recurringExpense'
 import { useLedger } from '../../../providers/LedgerProvider'
@@ -22,7 +23,7 @@ export default function BudgetScreen() {
   return <BudgetContent ledgerId={ledgerId} ledgerName={ledger?.name ?? ''} />
 }
 
-// ponytail: 웹의 마감된 달 잠금·연도별 예산 목록은 미이식 — 위쪽 월 이동으로 달을 골라 그 달 예산을 등록/수정한다
+// ponytail: 웹의 연도별 예산 목록은 미이식 — 위쪽 월 이동으로 달을 골라 그 달 예산을 등록/수정한다
 function BudgetContent({ ledgerId, ledgerName }: { ledgerId: string; ledgerName: string }) {
   const insets = useSafeAreaInsets()
   const hideTabBarOnScroll = useHideTabBarOnScroll()
@@ -31,6 +32,7 @@ function BudgetContent({ ledgerId, ledgerName }: { ledgerId: string; ledgerName:
   const { budgets, isLoading, saveBudget } = useBudgets(ledgerId)
   const recurring = useRecurringExpenses(ledgerId)
   const budget = budgets.find((b) => b.yearMonth === yearMonth)
+  const { isClosed } = useClosedMonths(ledgerId)
 
   return (
     // edge-to-edge라 키보드가 올라와도 화면이 줄지 않아서, 아래쪽 입력칸이 키보드에 가려지지 않게 직접 줄인다
@@ -49,7 +51,13 @@ function BudgetContent({ ledgerId, ledgerName }: { ledgerId: string; ledgerName:
           <ActivityIndicator color={colors.subtle} style={{ marginTop: 24 }} />
         ) : (
           // 달이 바뀌거나 저장된 값이 바뀌면 폼을 새 값으로 다시 채운다
-          <BudgetForm key={`${yearMonth}-${budget?.id ?? 'new'}`} yearMonth={yearMonth} budget={budget} onSave={saveBudget} />
+          <BudgetForm
+            key={`${yearMonth}-${budget?.id ?? 'new'}`}
+            yearMonth={yearMonth}
+            budget={budget}
+            closed={isClosed(yearMonth)}
+            onSave={saveBudget}
+          />
         )}
 
         <RecurringCard {...recurring} />
@@ -67,10 +75,12 @@ function nextMonthOf(yearMonth: string) {
 function BudgetForm({
   yearMonth,
   budget,
+  closed,
   onSave,
 }: {
   yearMonth: string
   budget?: Budget
+  closed: boolean // 마감된 달은 지출 탭에서 마감을 풀기 전까지 수정할 수 없다
   onSave: (input: Omit<Budget, 'id'>) => Promise<void>
 }) {
   const next = nextMonthOf(yearMonth)
@@ -106,10 +116,10 @@ function BudgetForm({
       <Text style={styles.cardTitle}>{budget ? '이 달 예산' : '이 달 예산 등록'}</Text>
 
       <Field label="월 생활비 예산">
-        <AmountInput value={monthlyBudget} onChange={setMonthlyBudget} />
+        <AmountInput value={monthlyBudget} onChange={setMonthlyBudget} editable={!closed} />
       </Field>
       <Field label="목표 저축액">
-        <AmountInput value={savingGoal} onChange={setSavingGoal} />
+        <AmountInput value={savingGoal} onChange={setSavingGoal} editable={!closed} />
       </Field>
       {budgetValue > 0 && (
         <Text style={[styles.hint, goalValue > budgetValue && { color: colors.danger }]}>
@@ -125,16 +135,17 @@ function BudgetForm({
           {dDay > 0 && <Text style={styles.dday}>D-{dDay}</Text>}
         </View>
         <View style={styles.stepper}>
-          <Pressable onPress={() => setPayDay(Math.max(1, day - 1))} hitSlop={10}><Text style={styles.arrow}>‹</Text></Pressable>
+          <Pressable disabled={closed} onPress={() => setPayDay(Math.max(1, day - 1))} hitSlop={10}><Text style={styles.arrow}>‹</Text></Pressable>
           <Text style={styles.dayText}>{next.month}월 {day}일</Text>
-          <Pressable onPress={() => setPayDay(Math.min(next.days, day + 1))} hitSlop={10}><Text style={styles.arrow}>›</Text></Pressable>
+          <Pressable disabled={closed} onPress={() => setPayDay(Math.min(next.days, day + 1))} hitSlop={10}><Text style={styles.arrow}>›</Text></Pressable>
         </View>
       </View>
 
+      {closed && <Text style={styles.hint}>마감된 달이라 수정할 수 없어요. 지출 탭에서 마감을 취소하면 다시 고칠 수 있어요.</Text>}
       {message && <Text style={[styles.hint, { color: message.error ? colors.danger : colors.accent }]}>{message.text}</Text>}
       <Pressable
-        style={[styles.primary, (!valid || busy) && styles.disabled]}
-        disabled={!valid || busy}
+        style={[styles.primary, (!valid || busy || closed) && styles.disabled]}
+        disabled={!valid || busy || closed}
         onPress={submit}
         android_ripple={{ color: 'rgba(255,255,255,0.2)' }}
       >
@@ -241,7 +252,17 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
   )
 }
 
-function AmountInput({ value, onChange, placeholder = '0' }: { value: string; onChange: (v: string) => void; placeholder?: string }) {
+function AmountInput({
+  value,
+  onChange,
+  placeholder = '0',
+  editable = true,
+}: {
+  value: string
+  onChange: (v: string) => void
+  placeholder?: string
+  editable?: boolean
+}) {
   return (
     <View style={styles.amountRow}>
       <TextInput
@@ -249,6 +270,7 @@ function AmountInput({ value, onChange, placeholder = '0' }: { value: string; on
         value={withComma(value)}
         onChangeText={(t) => onChange(digits(t))}
         keyboardType="number-pad"
+        editable={editable}
         placeholder={placeholder}
         placeholderTextColor={colors.subtle}
         maxLength={13}
