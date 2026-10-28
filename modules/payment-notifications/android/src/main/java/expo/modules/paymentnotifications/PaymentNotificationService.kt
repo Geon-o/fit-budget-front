@@ -5,7 +5,7 @@ import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 
 /**
- * 다른 앱의 알림 중 결제 알림처럼 보이는 것만 기기에 저장한다(앱이 꺼져 있어도 동작).
+ * 다른 앱의 알림 중 결제 알림처럼 보이는 것(Rules)만 기기에 저장한다(앱이 꺼져 있어도 동작).
  * 저장된 알림은 앱을 열었을 때 "확인 대기" 목록으로 보여주고, 사용자가 확인해야 지출이 된다.
  * 결제 알림이 아닌 알림 내용은 저장하지 않고 바로 버린다.
  */
@@ -16,7 +16,7 @@ class PaymentNotificationService : NotificationListenerService() {
     val title = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString().orEmpty()
     val text = (extras.getCharSequence(Notification.EXTRA_BIG_TEXT) ?: extras.getCharSequence(Notification.EXTRA_TEXT))
       ?.toString().orEmpty()
-    if (!looksLikePayment("$title $text")) return
+    if (!Rules.read(this).matches(sbn.packageName, "$title $text")) return
 
     PendingStore.add(
       this,
@@ -27,13 +27,5 @@ class PaymentNotificationService : NotificationListenerService() {
       text = text,
       postedAt = sbn.postTime,
     )
-  }
-
-  companion object {
-    private val AMOUNT = Regex("[0-9][0-9,]*\\s*원")
-    private val KEYWORDS = listOf("승인", "결제", "출금", "사용")
-
-    fun looksLikePayment(content: String): Boolean =
-      AMOUNT.containsMatchIn(content) && KEYWORDS.any { content.contains(it) } && !content.contains("취소")
   }
 }

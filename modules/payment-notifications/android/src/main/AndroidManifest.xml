@@ -1,4 +1,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <!-- Android 11+ 패키지 가시성: 감지할 앱을 고를 수 있게 홈 화면 앱 목록을 조회한다 -->
+  <queries>
+    <intent>
+      <action android:name="android.intent.action.MAIN" />
+      <category android:name="android.intent.category.LAUNCHER" />
+    </intent>
+  </queries>
   <application>
     <!-- 사용자가 설정 > 알림 접근에서 허용해야 동작한다 -->
     <service
