@@ -3,13 +3,14 @@ import { useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { useBudgets } from '../../domains/budget'
-import { getDailyAllowances, getPaceMessage, getSpentByDay } from '../../domains/dashboard'
-import { useExpenses } from '../../domains/expense'
-import { useLedger } from '../../providers/LedgerProvider'
-import { getCategoryStyle } from '../../shared/constants/categories'
-import { colors } from '../../shared/theme'
-import { formatCurrency, getDaysUntil } from '../../shared/utils/dateUtils'
+import { useBudgets } from '../../../domains/budget'
+import { getDailyAllowances, getPaceMessage, getSpentByDay } from '../../../domains/dashboard'
+import { useExpenses } from '../../../domains/expense'
+import { useLedger } from '../../../providers/LedgerProvider'
+import { useHideTabBarOnScroll } from '../../../providers/TabBarProvider'
+import { getCategoryStyle } from '../../../shared/constants/categories'
+import { colors, tabBar } from '../../../shared/theme'
+import { formatCurrency, getDaysUntil } from '../../../shared/utils/dateUtils'
 
 const RECENT_COUNT = 5
 
@@ -27,6 +28,7 @@ export default function Dashboard() {
 
 function DashboardContent({ ledgerId, ledgerName }: { ledgerId: string; ledgerName: string }) {
   const insets = useSafeAreaInsets()
+  const hideTabBarOnScroll = useHideTabBarOnScroll()
   const now = new Date()
   const [{ year, month }, setDate] = useState({ year: now.getFullYear(), month: now.getMonth() + 1 })
   const yearMonth = toYearMonth(year, month)
@@ -71,8 +73,9 @@ function DashboardContent({ ledgerId, ledgerName }: { ledgerId: string; ledgerNa
   return (
     // 상단 여백을 ScrollView 바깥에 둬서 스크롤한 내용이 상태바 밑으로 겹치지 않게 한다
     <ScrollView
+      {...hideTabBarOnScroll}
       style={[styles.screen, { marginTop: insets.top }]}
-      contentContainerStyle={[styles.container, { paddingTop: 12, paddingBottom: insets.bottom + 24 }]}
+      contentContainerStyle={[styles.container, { paddingTop: 12, paddingBottom: insets.bottom + tabBar.space }]}
     >
       <Pressable onPress={() => router.back()} hitSlop={12} style={styles.back}>
         <Text style={styles.backText}>‹ 가계부 목록</Text>

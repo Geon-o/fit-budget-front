@@ -6,6 +6,7 @@
     "@react-native-google-signin/google-signin": "^16.1.5",
     "expo": "~58.0.20",
     "expo-auth-session": "~58.0.15",
+    "expo-blur": "~58.0.5",
     "expo-constants": "~58.0.13",
     "expo-crypto": "~58.0.7",
     "expo-linking": "~58.0.14",
