@@ -2,6 +2,7 @@ import { Stack } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { ActivityIndicator, View } from 'react-native'
 import { AuthProvider, useAuthContext } from '../providers/AuthProvider'
+import { colors } from '../shared/theme'
 
 function RootStack() {
   const { user, isLoading } = useAuthContext()
@@ -15,7 +16,7 @@ function RootStack() {
   }
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
+    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}>
       <Stack.Protected guard={!!user}>
         <Stack.Screen name="(app)" />
       </Stack.Protected>

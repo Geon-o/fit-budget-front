@@ -1,3 +1,4 @@
+import { router } from 'expo-router'
 import { useState } from 'react'
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -9,7 +10,6 @@ import { colors } from '../../shared/theme'
 const ACCENT_COLORS = ['#d99b6c', '#6c9bd9', '#8fb96c', '#b06cd9', '#d96c8f', '#6cc2c2']
 const MAX_NAME = 10
 
-// ponytail: 가계부를 고르면 대시보드로 이동해야 하지만 대시보드 화면이 아직 없어 선택 표시만 한다.
 export default function LedgerList() {
   const { user, refetch } = useAuthContext()
   const insets = useSafeAreaInsets()
@@ -53,8 +53,8 @@ export default function LedgerList() {
 
   return (
     <ScrollView
-      style={styles.screen}
-      contentContainerStyle={[styles.container, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }]}
+      style={[styles.screen, { marginTop: insets.top }]}
+      contentContainerStyle={[styles.container, { paddingTop: 24, paddingBottom: insets.bottom + 24 }]}
     >
       <View style={styles.header}>
         <Text style={styles.wordmark}>Fit Budget</Text>
@@ -73,7 +73,11 @@ export default function LedgerList() {
             key={ledger.id}
             style={[styles.card, active && styles.cardActive]}
             android_ripple={{ color: 'rgba(0,0,0,0.05)' }}
-            onPress={() => !editingId && setLedgerId(ledger.id)}
+            onPress={() => {
+              if (editingId) return
+              setLedgerId(ledger.id)
+              router.push('/dashboard')
+            }}
           >
             <View style={styles.row}>
               <Text style={[styles.monogram, { backgroundColor: accent }]}>{ledger.name.charAt(0)}</Text>
