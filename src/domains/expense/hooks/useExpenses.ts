@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useFocusEffect } from 'expo-router'
+import { useCallback, useMemo, useState } from 'react'
 import {
   addExpense as addExpenseApi,
   deleteExpense as deleteExpenseApi,
@@ -12,19 +13,22 @@ export function useExpenses(ledgerId: string, yearMonth: string) {
   const [expenses, setExpenses] = useState<Expense[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
-  useEffect(() => {
-    let cancelled = false
-    setIsLoading(true)
-    fetchExpenses(ledgerId).then((data) => {
-      if (!cancelled) {
-        setExpenses(data)
-        setIsLoading(false)
+  // 탭 화면은 마운트된 채로 남아서, 다른 탭에서 바꾼 지출이 보이도록 화면에 들어올 때마다 다시 불러온다.
+  // 처음 이후로는 로딩 표시 없이 조용히 갱신한다.
+  useFocusEffect(
+    useCallback(() => {
+      let cancelled = false
+      fetchExpenses(ledgerId).then((data) => {
+        if (!cancelled) {
+          setExpenses(data)
+          setIsLoading(false)
+        }
+      })
+      return () => {
+        cancelled = true
       }
-    })
-    return () => {
-      cancelled = true
-    }
-  }, [ledgerId])
+    }, [ledgerId]),
+  )
 
   const addExpense = useCallback(
     async (input: Omit<Expense, 'id' | 'source'>) => {

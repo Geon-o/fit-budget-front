@@ -1,3 +1,4 @@
+export { ExpenseFormSheet } from './components/ExpenseFormSheet'
 export { useExpenses } from './hooks/useExpenses'
 export { useClosedMonths } from './hooks/useClosedMonths'
 export { useMonthlyTotals } from './hooks/useMonthlyTotals'
