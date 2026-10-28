@@ -1,5 +1,5 @@
 import { router } from 'expo-router'
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import type { ReactNode } from 'react'
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -8,17 +8,14 @@ import { getDailyAllowances, getPaceMessage, getSpentByDay } from '../../../doma
 import { useExpenses } from '../../../domains/expense'
 import { useLedger } from '../../../providers/LedgerProvider'
 import { useHideTabBarOnScroll } from '../../../providers/TabBarProvider'
+import { MonthNav, useMonth } from '../../../shared/components/MonthNav'
 import { getCategoryStyle } from '../../../shared/constants/categories'
 import { colors, tabBar } from '../../../shared/theme'
 import { formatCurrency, getDaysUntil } from '../../../shared/utils/dateUtils'
 
 const RECENT_COUNT = 5
 
-function toYearMonth(year: number, month: number) {
-  return `${year}-${String(month).padStart(2, '0')}`
-}
-
-// ponytail: 웹의 일일 권장액 달력·예산 추이 차트는 아직 미이식 — 요약/카테고리/최근 지출만 보여준다.
+// ponytail: 웹의 예산 추이 차트는 아직 미이식 — 일일 권장액 달력은 달력 탭에 있다.
 export default function Dashboard() {
   const { ledgerId, ledgers } = useLedger()
   if (!ledgerId) return null // 목록에서 가계부를 고르고 들어오므로 정상 흐름에선 항상 있다
@@ -30,9 +27,8 @@ function DashboardContent({ ledgerId, ledgerName }: { ledgerId: string; ledgerNa
   const insets = useSafeAreaInsets()
   const hideTabBarOnScroll = useHideTabBarOnScroll()
   const now = new Date()
-  const [{ year, month }, setDate] = useState({ year: now.getFullYear(), month: now.getMonth() + 1 })
-  const yearMonth = toYearMonth(year, month)
-  const isCurrentMonth = now.getFullYear() === year && now.getMonth() + 1 === month
+  const monthState = useMonth()
+  const { month, yearMonth, isCurrentMonth } = monthState
 
   const { expenses, isLoading } = useExpenses(ledgerId, yearMonth)
   const { budgets } = useBudgets(ledgerId)
@@ -64,12 +60,6 @@ function DashboardContent({ ledgerId, ledgerName }: { ledgerId: string; ledgerNa
     [expenses],
   )
 
-  const shiftMonth = (delta: number) =>
-    setDate(({ year: y, month: m }) => {
-      const d = new Date(y, m - 1 + delta, 1)
-      return { year: d.getFullYear(), month: d.getMonth() + 1 }
-    })
-
   return (
     // 상단 여백을 ScrollView 바깥에 둬서 스크롤한 내용이 상태바 밑으로 겹치지 않게 한다
     <ScrollView
@@ -82,16 +72,7 @@ function DashboardContent({ ledgerId, ledgerName }: { ledgerId: string; ledgerNa
       </Pressable>
       <Text style={styles.ledgerName}>{ledgerName}</Text>
 
-      <View style={styles.monthNav}>
-        <Pressable onPress={() => shiftMonth(-1)} hitSlop={12}><Text style={styles.arrow}>‹</Text></Pressable>
-        <Text style={styles.month}>{year}년 {month}월</Text>
-        <Pressable onPress={() => shiftMonth(1)} hitSlop={12}><Text style={styles.arrow}>›</Text></Pressable>
-        {!isCurrentMonth && (
-          <Pressable onPress={() => setDate({ year: now.getFullYear(), month: now.getMonth() + 1 })} hitSlop={8}>
-            <Text style={styles.todayLink}>이번 달</Text>
-          </Pressable>
-        )}
-      </View>
+      <MonthNav month={monthState} />
 
       {isLoading ? (
         <ActivityIndicator color={colors.subtle} style={{ marginTop: 40 }} />
@@ -213,10 +194,6 @@ const styles = StyleSheet.create({
   back: { alignSelf: 'flex-start', paddingVertical: 4 },
   backText: { fontSize: 15, color: colors.subtle },
   ledgerName: { fontSize: 28, fontWeight: '800', color: colors.ink, letterSpacing: -0.8 },
-  monthNav: { flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 4 },
-  arrow: { fontSize: 24, color: colors.ink, paddingHorizontal: 4 },
-  month: { fontSize: 16, fontWeight: '600', color: colors.ink },
-  todayLink: { fontSize: 14, fontWeight: '600', color: colors.accent },
   // 그림자 대신 1px 보더의 플랫 카드
   hero: { backgroundColor: colors.surface, borderRadius: 16, borderWidth: 1, borderColor: colors.line, padding: 20, gap: 6 },
   heroLabel: { fontSize: 14, fontWeight: '600', color: colors.subtle },
