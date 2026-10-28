@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
   // 그림자 대신 1px 보더의 플랫 카드
   hero: { backgroundColor: colors.surface, borderRadius: 16, borderWidth: 1, borderColor: colors.line, padding: 20, gap: 6 },
   heroLabel: { fontSize: 14, fontWeight: '600', color: colors.subtle },
-  heroValue: { fontSize: 44, fontWeight: '800', color: colors.ink, letterSpacing: -1.5, fontVariant: ['tabular-nums'] },
+  heroValue: { textAlign: 'right', fontSize: 44, fontWeight: '800', color: colors.ink, letterSpacing: -1.5, fontVariant: ['tabular-nums'] },
   heroSub: { fontSize: 14, color: colors.subtle },
   pace: { fontSize: 14, fontWeight: '500', color: colors.accent, marginTop: 8 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
@@ -212,7 +212,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   tileLabel: { fontSize: 13, color: colors.subtle },
-  tileValue: { fontSize: 20, fontWeight: '700', color: colors.ink, fontVariant: ['tabular-nums'] },
+  tileValue: { textAlign: 'right', fontSize: 20, fontWeight: '700', color: colors.ink, fontVariant: ['tabular-nums'] },
   bar: { height: 6, borderRadius: 3, backgroundColor: colors.line, overflow: 'hidden' },
   barFill: { height: '100%', borderRadius: 3, backgroundColor: colors.accent },
   card: { backgroundColor: colors.surface, borderRadius: 12, borderWidth: 1, borderColor: colors.line, padding: 16, gap: 14 },

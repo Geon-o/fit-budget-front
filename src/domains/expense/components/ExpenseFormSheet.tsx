@@ -1,5 +1,19 @@
-import { useState } from 'react'
-import { Alert, KeyboardAvoidingView, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
+import { useEffect, useRef, useState } from 'react'
+import type { ComponentRef } from 'react'
+import {
+  Alert,
+  Animated,
+  Easing,
+  Keyboard,
+  KeyboardAvoidingView,
+  Modal,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+  useWindowDimensions,
+} from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { EXPENSE_CATEGORIES, getCategoryStyle } from '../../../shared/constants/categories'
 import { colors } from '../../../shared/theme'
@@ -7,12 +21,28 @@ import type { Expense } from '../types/expense.types'
 
 type ExpenseInput = Omit<Expense, 'id' | 'source'>
 
+/** 시트가 이 버튼에서 커져 나오는 것처럼 보이게 할 때, 버튼의 화면상 위치·모양 */
+export interface SheetOrigin {
+  left: number
+  right: number
+  bottom: number
+  height: number
+  radius: number
+  label: string
+}
+
+const SHEET_RADIUS = 20
+// Material 3 emphasized: 처음엔 빠르게, 끝은 천천히 멈춘다
+const EASE = Easing.bezier(0.2, 0, 0, 1)
+
 interface Props {
   yearMonth: string // 날짜는 이 달 안에서만 고른다
   initial?: Expense // 있으면 수정, 없으면 추가
+  prefill?: ExpenseInput // 추가할 때 미리 채울 값(결제 알림에서 뽑은 금액·가맹점 등)
   onSubmit: (input: ExpenseInput) => Promise<void>
   onDelete?: () => Promise<void>
   onClose: () => void
+  origin?: SheetOrigin // 있으면 버튼이 시트로 커지는 모션, 없으면 아래에서 올라오는 기본 모션
 }
 
 function defaultDay(yearMonth: string) {
@@ -22,16 +52,36 @@ function defaultDay(yearMonth: string) {
 }
 
 // ponytail: 날짜는 이 달 안에서 ‹ › 로만 고른다 — 달력형 날짜 선택이 필요해지면 그때 피커 도입
-export function ExpenseFormSheet({ yearMonth, initial, onSubmit, onDelete, onClose }: Props) {
+export function ExpenseFormSheet({ yearMonth, initial, prefill, onSubmit, onDelete, onClose, origin }: Props) {
   const insets = useSafeAreaInsets()
+  const { width } = useWindowDimensions()
   const [year, month] = yearMonth.split('-').map(Number)
   const daysInMonth = new Date(year, month, 0).getDate()
-  const [day, setDay] = useState(initial ? Number(initial.expenseDate.slice(8, 10)) : defaultDay(yearMonth))
-  const [amount, setAmount] = useState(initial ? String(initial.amount) : '')
-  const [category, setCategory] = useState<string>(initial?.category ?? EXPENSE_CATEGORIES[0])
-  const [memo, setMemo] = useState(initial?.memo ?? '')
+  const base = initial ?? prefill
+  const [day, setDay] = useState(base ? Number(base.expenseDate.slice(8, 10)) : defaultDay(yearMonth))
+  const [amount, setAmount] = useState(base ? String(base.amount) : '')
+  const [category, setCategory] = useState<string>(base?.category ?? EXPENSE_CATEGORIES[0])
+  const [memo, setMemo] = useState(base?.memo ?? '')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // morph: 0 = 버튼, 1 = 시트. 시트 높이를 잰 뒤에 펼친다.
+  const morph = useRef(new Animated.Value(origin ? 0 : 1)).current
+  const [sheetHeight, setSheetHeight] = useState(0)
+  const amountRef = useRef<ComponentRef<typeof TextInput>>(null)
+  useEffect(() => {
+    if (!origin || !sheetHeight) return
+    Animated.timing(morph, { toValue: 1, duration: 420, easing: EASE, useNativeDriver: false }).start(() => {
+      // 키보드는 펼침이 끝난 뒤에 올려 모션이 흔들리지 않게 한다
+      if (!base) amountRef.current?.focus()
+    })
+  }, [origin, sheetHeight, morph, base])
+
+  const close = () => {
+    if (!origin) return onClose()
+    Keyboard.dismiss()
+    Animated.timing(morph, { toValue: 0, duration: 320, easing: EASE, useNativeDriver: false }).start(() => onClose())
+  }
 
   const amountValue = Number(amount)
   const valid = Number.isInteger(amountValue) && amountValue > 0
@@ -41,7 +91,7 @@ export function ExpenseFormSheet({ yearMonth, initial, onSubmit, onDelete, onClo
     setError(null)
     try {
       await action()
-      onClose()
+      close()
     } catch (e) {
       setError(e instanceof Error ? e.message : '저장하지 못했어요')
       setBusy(false)
@@ -58,11 +108,8 @@ export function ExpenseFormSheet({ yearMonth, initial, onSubmit, onDelete, onClo
       }),
     )
 
-  return (
-    <Modal transparent animationType="slide" onRequestClose={onClose}>
-      <KeyboardAvoidingView behavior="padding" style={styles.flex}>
-        <Pressable style={styles.backdrop} onPress={onClose} />
-        <View style={[styles.sheet, { paddingBottom: insets.bottom + 16 }]}>
+  const content = (
+        <>
           <View style={styles.handle} />
           <Text style={styles.title}>{initial ? '지출 수정' : '지출 추가'}</Text>
 
@@ -74,7 +121,8 @@ export function ExpenseFormSheet({ yearMonth, initial, onSubmit, onDelete, onClo
               keyboardType="number-pad"
               placeholder="0"
               placeholderTextColor={colors.line}
-              autoFocus={!initial}
+              ref={amountRef}
+              autoFocus={!base && !origin}
               maxLength={10}
             />
             <Text style={styles.won}>원</Text>
@@ -140,7 +188,63 @@ export function ExpenseFormSheet({ yearMonth, initial, onSubmit, onDelete, onClo
               <Text style={styles.deleteText}>삭제</Text>
             </Pressable>
           )}
-        </View>
+        </>
+  )
+
+  if (!origin) {
+    return (
+      <Modal transparent animationType="slide" onRequestClose={onClose}>
+        <KeyboardAvoidingView behavior="padding" style={styles.flex}>
+          <Pressable style={styles.backdrop} onPress={onClose} />
+          <View style={[styles.sheet, { paddingBottom: insets.bottom + 16 }]}>{content}</View>
+        </KeyboardAvoidingView>
+      </Modal>
+    )
+  }
+
+  const lerp = (from: number, to: number) => morph.interpolate({ inputRange: [0, 1], outputRange: [from, to] })
+  return (
+    // 화면 전체 좌표를 쓰도록 상태바·내비게이션 바 영역까지 덮어, 버튼 위치와 정확히 겹치게 한다
+    <Modal transparent animationType="none" statusBarTranslucent navigationBarTranslucent onRequestClose={close}>
+      <KeyboardAvoidingView behavior="padding" style={styles.morphRoot}>
+        <Animated.View style={[StyleSheet.absoluteFill, styles.dim, { opacity: morph }]}>
+          <Pressable style={styles.flex} onPress={close} />
+        </Animated.View>
+        <Animated.View
+          style={{
+            overflow: 'hidden',
+            marginLeft: lerp(origin.left, 0),
+            marginRight: lerp(origin.right, 0),
+            marginBottom: lerp(origin.bottom, 0),
+            height: sheetHeight ? lerp(origin.height, sheetHeight) : origin.height,
+            borderTopLeftRadius: lerp(origin.radius, SHEET_RADIUS),
+            borderTopRightRadius: lerp(origin.radius, SHEET_RADIUS),
+            borderBottomLeftRadius: lerp(origin.radius, 0),
+            borderBottomRightRadius: lerp(origin.radius, 0),
+            backgroundColor: morph.interpolate({ inputRange: [0, 0.6], outputRange: [colors.accent, colors.surface], extrapolate: 'clamp' }),
+          }}
+        >
+          {/* 내용은 최종 너비로 한 번만 배치해 높이를 재고, 펼쳐지는 동안 그대로 따라 움직인다 */}
+          <Animated.View
+            onLayout={(e) => !sheetHeight && setSheetHeight(e.nativeEvent.layout.height)}
+            style={[
+              styles.sheetContent,
+              {
+                width,
+                left: lerp(-origin.left, 0),
+                paddingBottom: insets.bottom + 16,
+                opacity: morph.interpolate({ inputRange: [0.45, 1], outputRange: [0, 1], extrapolate: 'clamp' }),
+              },
+            ]}
+          >
+            {content}
+          </Animated.View>
+          <Animated.Text
+            style={[styles.morphLabel, { opacity: morph.interpolate({ inputRange: [0, 0.25], outputRange: [1, 0], extrapolate: 'clamp' }) }]}
+          >
+            {origin.label}
+          </Animated.Text>
+        </Animated.View>
       </KeyboardAvoidingView>
     </Modal>
   )
@@ -149,11 +253,15 @@ export function ExpenseFormSheet({ yearMonth, initial, onSubmit, onDelete, onClo
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)' },
+  morphRoot: { flex: 1, justifyContent: 'flex-end' },
+  dim: { backgroundColor: 'rgba(0,0,0,0.35)' },
+  sheetContent: { position: 'absolute', top: 0, paddingHorizontal: 20, paddingTop: 10, gap: 16 },
+  morphLabel: { position: 'absolute', top: 0, left: 0, right: 0, height: 52, lineHeight: 52, textAlign: 'center', fontSize: 16, fontWeight: '700', color: '#fff' },
   sheet: { backgroundColor: colors.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingHorizontal: 20, paddingTop: 10, gap: 16 },
   handle: { alignSelf: 'center', width: 36, height: 4, borderRadius: 2, backgroundColor: colors.line },
   title: { fontSize: 18, fontWeight: '700', color: colors.ink },
   amountRow: { flexDirection: 'row', alignItems: 'baseline', gap: 6 },
-  amount: { flex: 1, fontSize: 40, fontWeight: '800', color: colors.ink, padding: 0, fontVariant: ['tabular-nums'] },
+  amount: { flex: 1, textAlign: 'right', fontSize: 40, fontWeight: '800', color: colors.ink, padding: 0, fontVariant: ['tabular-nums'] },
   won: { fontSize: 22, fontWeight: '700', color: colors.ink },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: { borderWidth: 1, borderColor: colors.line, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 7 },

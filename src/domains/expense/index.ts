@@ -1,5 +1,7 @@
 export { ExpenseFormSheet } from './components/ExpenseFormSheet'
 export { useExpenses } from './hooks/useExpenses'
 export { useClosedMonths } from './hooks/useClosedMonths'
+export { usePendingPayments } from './hooks/usePendingPayments'
+export type { PendingPayment } from './hooks/usePendingPayments'
 export { useMonthlyTotals } from './hooks/useMonthlyTotals'
 export type { Expense } from './types/expense.types'

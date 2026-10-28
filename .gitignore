@@ -43,3 +43,6 @@ yarn-error.*
 # local env / IDE
 .env
 .idea/
+
+# local native module build output
+modules/*/android/build/

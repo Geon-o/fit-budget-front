@@ -291,7 +291,7 @@ const styles = StyleSheet.create({
   fieldLabel: { fontSize: 14, color: colors.subtle },
   hint: { fontSize: 13, color: colors.subtle, lineHeight: 19 },
   amountRow: { flexDirection: 'row', alignItems: 'center', borderBottomWidth: 1.5, borderColor: colors.line, gap: 6 },
-  amount: { flex: 1, fontSize: 22, fontWeight: '700', color: colors.ink, paddingVertical: 6, fontVariant: ['tabular-nums'] },
+  amount: { flex: 1, textAlign: 'right', fontSize: 22, fontWeight: '700', color: colors.ink, paddingVertical: 6, fontVariant: ['tabular-nums'] },
   won: { fontSize: 18, fontWeight: '600', color: colors.ink },
   dayRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   dday: { fontSize: 13, fontWeight: '600', color: colors.accent, marginTop: 2 },

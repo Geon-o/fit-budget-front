@@ -1,17 +1,18 @@
 import { useMemo, useState } from 'react'
-import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { ActivityIndicator, Alert, Animated, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useBudgets } from '../../../domains/budget'
-import { ExpenseFormSheet, useClosedMonths, useExpenses } from '../../../domains/expense'
-import type { Expense } from '../../../domains/expense'
+import { ExpenseFormSheet, useClosedMonths, useExpenses, usePendingPayments } from '../../../domains/expense'
+import type { Expense, PendingPayment } from '../../../domains/expense'
 import { useLedger } from '../../../providers/LedgerProvider'
-import { useHideTabBarOnScroll } from '../../../providers/TabBarProvider'
+import { useHideTabBarOnScroll, useTabBarHidden } from '../../../providers/TabBarProvider'
 import { MonthNav, useMonth } from '../../../shared/components/MonthNav'
 import { getCategoryStyle } from '../../../shared/constants/categories'
 import { colors, tabBar } from '../../../shared/theme'
 import { formatCurrency } from '../../../shared/utils/dateUtils'
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
+const FAB_SPACE = 72 // 목록 끝이 플로팅 추가 버튼에 가려지지 않게 둘 여백
 
 export default function Expenses() {
   const { ledgerId, ledgers } = useLedger()
@@ -24,6 +25,7 @@ export default function Expenses() {
 function ExpensesContent({ ledgerId, ledgerName }: { ledgerId: string; ledgerName: string }) {
   const insets = useSafeAreaInsets()
   const hideTabBarOnScroll = useHideTabBarOnScroll()
+  const tabBarHidden = useTabBarHidden()
   const monthState = useMonth()
   const { month, yearMonth, isCurrentMonth } = monthState
   const { expenses, isLoading, addExpense, updateExpense, deleteExpense } = useExpenses(ledgerId, yearMonth)
@@ -31,10 +33,12 @@ function ExpensesContent({ ledgerId, ledgerName }: { ledgerId: string; ledgerNam
   const { isClosed, toggleClosed } = useClosedMonths(ledgerId)
   const closed = isClosed(yearMonth)
   const budget = budgets.find((b) => b.yearMonth === yearMonth)
-  // null = 닫힘, 'new' = 추가, Expense = 수정
-  const [sheet, setSheet] = useState<'new' | Expense | null>(null)
+  const payments = usePendingPayments()
+  // null = 닫힘, 'new' = 추가, Expense = 수정, PendingPayment = 결제 알림으로 추가
+  const [sheet, setSheet] = useState<'new' | Expense | PendingPayment | null>(null)
 
   const total = expenses.reduce((sum, e) => sum + e.amount, 0)
+  const addButtonBottom = insets.bottom + tabBar.gap + tabBar.height + 12
 
   // 마감된 달은 지출을 바꿀 수 없고, 대신 목표 저축 대비 결과를 보여준다
   const toggleClose = () =>
@@ -53,7 +57,7 @@ function ExpensesContent({ ledgerId, ledgerName }: { ledgerId: string; ledgerNam
       <ScrollView
         {...hideTabBarOnScroll}
         style={[styles.screen, { marginTop: insets.top }]}
-        contentContainerStyle={[styles.container, { paddingTop: 12, paddingBottom: insets.bottom + tabBar.space }]}
+        contentContainerStyle={[styles.container, { paddingTop: 12, paddingBottom: insets.bottom + tabBar.space + FAB_SPACE }]}
       >
         <Text style={styles.ledgerName}>{ledgerName}</Text>
         <Text style={styles.title}>지출 내역</Text>
@@ -70,12 +74,10 @@ function ExpensesContent({ ledgerId, ledgerName }: { ledgerId: string; ledgerNam
           <Text style={styles.heroSub}>{expenses.length}건</Text>
         </View>
 
-        {closed ? (
+        <PaymentNotificationsCard {...payments} onAdd={setSheet} />
+
+        {closed && (
           <ClosedSummary monthlyBudget={budget?.monthlyBudget ?? 0} savingGoal={budget?.savingGoal ?? 0} total={total} />
-        ) : (
-          <Pressable style={styles.add} onPress={() => setSheet('new')} android_ripple={{ color: 'rgba(255,255,255,0.2)' }}>
-            <Text style={styles.addText}>+ 지출 추가</Text>
-          </Pressable>
         )}
 
         {isLoading ? (
@@ -117,16 +119,102 @@ function ExpensesContent({ ledgerId, ledgerName }: { ledgerId: string; ledgerNam
         )}
       </ScrollView>
 
-      {sheet && (
+      {/* 하단 추가 버튼(이전과 같은 전체 너비): 탭 바 바로 위에 두고, 스크롤로 탭 바가 숨으면 함께 내려간다.
+          누르면 이 버튼이 그대로 커지며 입력 시트가 되므로, 시트가 열려 있는 동안은 숨긴다 */}
+      {!closed && sheet !== 'new' && (
+        <Animated.View
+          style={[
+            styles.fab,
+            {
+              bottom: addButtonBottom,
+              transform: [{ translateY: tabBarHidden.interpolate({ inputRange: [0, 1], outputRange: [0, tabBar.height + 12] }) }],
+            },
+          ]}
+        >
+          <Pressable style={styles.add} onPress={() => setSheet('new')} android_ripple={{ color: 'rgba(255,255,255,0.2)' }}>
+            <Text style={styles.addText}>+ 지출 추가</Text>
+          </Pressable>
+        </Animated.View>
+      )}
+
+      {sheet && sheet !== 'new' && 'postedAt' in sheet ? (
+        // 결제 알림: 알림을 받은 달 기준으로 미리 채우고, 저장하면 확인 대기에서 뺀다
         <ExpenseFormSheet
-          yearMonth={yearMonth}
-          initial={sheet === 'new' ? undefined : sheet}
-          onSubmit={(input) => (sheet === 'new' ? addExpense(input) : updateExpense(sheet.id, input))}
-          onDelete={sheet === 'new' ? undefined : () => deleteExpense(sheet.id)}
+          yearMonth={sheet.expenseDate.slice(0, 7)}
+          prefill={{ expenseDate: sheet.expenseDate, amount: sheet.amount, category: '식비', memo: sheet.merchant }}
+          onSubmit={async (input) => {
+            await addExpense(input)
+            payments.dismiss(sheet.id)
+          }}
           onClose={() => setSheet(null)}
         />
+      ) : (
+        sheet && (
+          <ExpenseFormSheet
+            yearMonth={yearMonth}
+            initial={sheet === 'new' ? undefined : sheet}
+            origin={
+              sheet === 'new'
+                ? { left: 20, right: 20, bottom: addButtonBottom, height: 52, radius: 12, label: '+ 지출 추가' }
+                : undefined
+            }
+            onSubmit={(input) => (sheet === 'new' ? addExpense(input) : updateExpense(sheet.id, input))}
+            onDelete={sheet === 'new' ? undefined : () => deleteExpense(sheet.id)}
+            onClose={() => setSheet(null)}
+          />
+        )
       )}
     </>
+  )
+}
+
+function PaymentNotificationsCard({
+  supported,
+  enabled,
+  pending,
+  openSettings,
+  dismiss,
+  onAdd,
+}: ReturnType<typeof usePendingPayments> & { onAdd: (p: PendingPayment) => void }) {
+  if (!supported) return null
+  if (!enabled) {
+    return (
+      <Pressable style={styles.notice} onPress={openSettings}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.noticeTitle}>결제 알림으로 지출 추가</Text>
+          <Text style={styles.noticeSub}>카드·은행 결제 알림을 모아 두었다가 확인하면 지출에 넣어드려요</Text>
+        </View>
+        <Text style={styles.noticeAction}>켜기</Text>
+      </Pressable>
+    )
+  }
+  if (pending.length === 0) return null
+  return (
+    <View style={styles.card}>
+      <View style={styles.dayHeader}>
+        <Text style={styles.dayLabel}>결제 알림 확인 대기 {pending.length}건</Text>
+      </View>
+      {pending.map((p) => {
+        const d = new Date(p.postedAt)
+        return (
+          <View key={p.id} style={styles.row}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.itemName} numberOfLines={1}>{p.merchant}</Text>
+              <Text style={styles.itemMeta} numberOfLines={1}>
+                {d.getMonth() + 1}월 {d.getDate()}일 {String(d.getHours()).padStart(2, '0')}:{String(d.getMinutes()).padStart(2, '0')} · {p.title}
+              </Text>
+            </View>
+            <Text style={styles.itemAmount}>{formatCurrency(p.amount)}</Text>
+            <Pressable onPress={() => onAdd(p)} hitSlop={6}>
+              <Text style={styles.pendingAdd}>추가</Text>
+            </Pressable>
+            <Pressable onPress={() => dismiss(p.id)} hitSlop={6}>
+              <Text style={styles.pendingDismiss}>무시</Text>
+            </Pressable>
+          </View>
+        )
+      })}
+    </View>
   )
 }
 
@@ -163,6 +251,12 @@ const styles = StyleSheet.create({
   title: { fontSize: 28, fontWeight: '800', color: colors.ink, letterSpacing: -0.8 },
   // 그림자 대신 1px 보더의 플랫 카드
   hero: { backgroundColor: colors.surface, borderRadius: 16, borderWidth: 1, borderColor: colors.line, padding: 20, gap: 4 },
+  notice: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: colors.surface, borderRadius: 12, borderWidth: 1, borderColor: colors.line, padding: 16 },
+  noticeTitle: { fontSize: 15, fontWeight: '700', color: colors.ink },
+  noticeSub: { fontSize: 13, color: colors.subtle, marginTop: 2 },
+  noticeAction: { fontSize: 15, fontWeight: '700', color: colors.accent },
+  pendingAdd: { fontSize: 14, fontWeight: '700', color: colors.accent },
+  pendingDismiss: { fontSize: 14, color: colors.subtle },
   heroTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   closeChip: { borderWidth: 1, borderColor: colors.line, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5 },
   closeChipOn: { backgroundColor: colors.ink, borderColor: colors.ink },
@@ -174,8 +268,9 @@ const styles = StyleSheet.create({
   summaryDivider: { height: 1, backgroundColor: colors.line },
   summaryResult: { fontSize: 16, fontWeight: '700', marginTop: 4 },
   heroLabel: { fontSize: 14, fontWeight: '600', color: colors.subtle },
-  heroValue: { fontSize: 40, fontWeight: '800', color: colors.ink, letterSpacing: -1.5, fontVariant: ['tabular-nums'] },
+  heroValue: { textAlign: 'right', fontSize: 40, fontWeight: '800', color: colors.ink, letterSpacing: -1.5, fontVariant: ['tabular-nums'] },
   heroSub: { fontSize: 14, color: colors.subtle },
+  fab: { position: 'absolute', left: 20, right: 20 },
   add: { height: 52, borderRadius: 12, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   addText: { fontSize: 16, fontWeight: '700', color: '#fff' },
   empty: { fontSize: 15, color: colors.subtle, textAlign: 'center', marginTop: 24 },
