@@ -1,15 +1,18 @@
 import { useState } from 'react'
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { logout } from '../../domains/auth'
 import { useAuthContext } from '../../providers/AuthProvider'
 import { useLedger } from '../../providers/LedgerProvider'
+import { colors } from '../../shared/theme'
 
 const ACCENT_COLORS = ['#d99b6c', '#6c9bd9', '#8fb96c', '#b06cd9', '#d96c8f', '#6cc2c2']
 const MAX_NAME = 10
 
 // ponytail: 가계부를 고르면 대시보드로 이동해야 하지만 대시보드 화면이 아직 없어 선택 표시만 한다.
 export default function LedgerList() {
-  const { refetch } = useAuthContext()
+  const { user, refetch } = useAuthContext()
+  const insets = useSafeAreaInsets()
   const { ledgerId, ledgers, setLedgerId, addLedger, renameLedger, setLedgerColor, deleteLedger } = useLedger()
   const [isAdding, setIsAdding] = useState(false)
   const [newName, setNewName] = useState('')
@@ -49,8 +52,17 @@ export default function LedgerList() {
     ])
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>가계부 변경</Text>
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={[styles.container, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }]}
+    >
+      <View style={styles.header}>
+        <Text style={styles.wordmark}>Fit Budget</Text>
+        <Text style={styles.headline}>
+          <Text style={{ color: colors.accent }}>{user?.nickname}</Text>님의{'\n'}가계부
+        </Text>
+        <Text style={styles.sub}>{ledgers.length ? '사용할 가계부를 골라주세요.' : '첫 가계부를 만들어 시작해요.'}</Text>
+      </View>
 
       {ledgers.map((ledger, index) => {
         const accent = ledger.color ?? ACCENT_COLORS[index % ACCENT_COLORS.length]
@@ -59,7 +71,8 @@ export default function LedgerList() {
         return (
           <Pressable
             key={ledger.id}
-            style={[styles.card, { borderLeftColor: accent }, active && styles.cardActive]}
+            style={[styles.card, active && styles.cardActive]}
+            android_ripple={{ color: 'rgba(0,0,0,0.05)' }}
             onPress={() => !editingId && setLedgerId(ledger.id)}
           >
             <View style={styles.row}>
@@ -82,7 +95,7 @@ export default function LedgerList() {
             <View style={styles.actions}>
               {isEditing ? (
                 <>
-                  <Pressable onPress={submitEdit}><Text style={styles.action}>확인</Text></Pressable>
+                  <Pressable onPress={submitEdit}><Text style={[styles.action, styles.primary]}>확인</Text></Pressable>
                   <Pressable onPress={() => setEditingId(null)}><Text style={styles.action}>취소</Text></Pressable>
                 </>
               ) : (
@@ -105,7 +118,7 @@ export default function LedgerList() {
                 {ACCENT_COLORS.map((color) => (
                   <Pressable
                     key={color}
-                    style={[styles.swatch, { backgroundColor: color }]}
+                    style={[styles.swatch, { backgroundColor: color }, color === accent && styles.swatchActive]}
                     onPress={() => run(async () => {
                       await setLedgerColor(ledger.id, color)
                       setColorPickerId(null)
@@ -130,13 +143,13 @@ export default function LedgerList() {
             onSubmitEditing={submitNew}
           />
           <View style={styles.actions}>
-            <Pressable onPress={submitNew}><Text style={styles.action}>추가</Text></Pressable>
+            <Pressable onPress={submitNew}><Text style={[styles.action, styles.primary]}>추가</Text></Pressable>
             <Pressable onPress={() => { setIsAdding(false); setNewName('') }}><Text style={styles.action}>취소</Text></Pressable>
           </View>
         </View>
       ) : (
-        <Pressable style={[styles.card, styles.addCard]} onPress={() => setIsAdding(true)}>
-          <Text style={styles.name}>+ 새 가계부</Text>
+        <Pressable style={[styles.card, styles.addCard]} android_ripple={{ color: 'rgba(0,0,0,0.05)' }} onPress={() => setIsAdding(true)}>
+          <Text style={styles.addText}>+ 새 가계부</Text>
         </Pressable>
       )}
 
@@ -148,20 +161,36 @@ export default function LedgerList() {
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 16, paddingTop: 56, gap: 12 },
-  title: { fontSize: 20, fontWeight: '600', marginBottom: 4 },
-  card: { backgroundColor: '#fff', borderRadius: 12, padding: 14, gap: 10, borderLeftWidth: 4, borderLeftColor: '#ddd' },
-  cardActive: { borderWidth: 1, borderColor: '#222', borderLeftWidth: 4 },
-  addCard: { alignItems: 'center', borderLeftWidth: 0, borderStyle: 'dashed', borderWidth: 1, borderColor: '#aaa' },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  monogram: { width: 32, height: 32, borderRadius: 16, textAlign: 'center', lineHeight: 32, color: '#fff', fontWeight: '600', overflow: 'hidden' },
-  name: { fontSize: 16, flex: 1 },
-  input: { flex: 1, fontSize: 16, borderBottomWidth: 1, borderColor: '#999', paddingVertical: 2 },
-  badge: { fontSize: 12, color: '#555' },
-  actions: { flexDirection: 'row', gap: 16 },
-  action: { fontSize: 14, color: '#2563eb' },
-  danger: { color: '#dc2626' },
-  swatches: { flexDirection: 'row', gap: 10 },
-  swatch: { width: 28, height: 28, borderRadius: 14 },
-  logout: { textAlign: 'center', color: '#666', marginTop: 16 },
+  screen: { flex: 1, backgroundColor: colors.bg },
+  container: { paddingHorizontal: 24, gap: 12 },
+  header: { gap: 16, marginBottom: 20 },
+  wordmark: { fontSize: 16, fontWeight: '700', color: colors.ink, letterSpacing: -0.2 },
+  headline: { fontSize: 32, lineHeight: 42, fontWeight: '800', color: colors.ink, letterSpacing: -1 },
+  sub: { fontSize: 15, color: colors.subtle },
+  // 그림자 대신 1px 보더의 플랫 카드. android_ripple이 모서리를 넘지 않게 overflow hidden
+  card: {
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.line,
+    padding: 16,
+    gap: 14,
+    overflow: 'hidden',
+  },
+  cardActive: { borderColor: colors.accent, borderWidth: 1.5 },
+  addCard: { alignItems: 'center', borderStyle: 'dashed', borderColor: '#C4C4C4', backgroundColor: 'transparent' },
+  addText: { fontSize: 16, fontWeight: '600', color: colors.accent },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  monogram: { width: 36, height: 36, borderRadius: 8, textAlign: 'center', lineHeight: 36, color: '#fff', fontSize: 16, fontWeight: '700', overflow: 'hidden' },
+  name: { fontSize: 17, fontWeight: '600', color: colors.ink, flex: 1 },
+  input: { flex: 1, fontSize: 17, color: colors.ink, borderBottomWidth: 1.5, borderColor: colors.accent, paddingVertical: 4 },
+  badge: { fontSize: 12, fontWeight: '600', color: colors.accent, backgroundColor: '#E7F5EF', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, overflow: 'hidden' },
+  actions: { flexDirection: 'row', gap: 20, paddingLeft: 48 },
+  action: { fontSize: 14, fontWeight: '500', color: colors.subtle },
+  primary: { color: colors.accent, fontWeight: '600' },
+  danger: { color: colors.danger },
+  swatches: { flexDirection: 'row', gap: 12, paddingLeft: 48 },
+  swatch: { width: 28, height: 28, borderRadius: 8 },
+  swatchActive: { borderWidth: 2, borderColor: colors.ink },
+  logout: { textAlign: 'center', fontSize: 14, color: colors.subtle, marginTop: 24 },
 })
