@@ -2,6 +2,7 @@ import { Stack } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { ActivityIndicator, View } from 'react-native'
 import { AuthProvider, useAuthContext } from '../providers/AuthProvider'
+import { AlertHost } from '../shared/components/AppAlert'
 import { colors } from '../shared/theme'
 
 function RootStack() {
@@ -32,6 +33,7 @@ export default function RootLayout() {
     <AuthProvider>
       <StatusBar style="dark" />
       <RootStack />
+      <AlertHost />
     </AuthProvider>
   )
 }

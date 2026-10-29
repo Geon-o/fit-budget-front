@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { ReactNode } from 'react'
-import { ActivityIndicator, Alert, KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
+import { ActivityIndicator, KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useBudgets } from '../../../domains/budget'
 import type { Budget } from '../../../domains/budget'
@@ -10,6 +10,7 @@ import type { RecurringExpense } from '../../../domains/recurringExpense'
 import { useLedger } from '../../../providers/LedgerProvider'
 import { useHideTabBarOnScroll } from '../../../providers/TabBarProvider'
 import { MonthNav, useMonth } from '../../../shared/components/MonthNav'
+import { showAlert } from '../../../shared/components/AppAlert'
 import { colors, tabBar } from '../../../shared/theme'
 import { formatCurrency, getDaysUntil } from '../../../shared/utils/dateUtils'
 
@@ -174,19 +175,19 @@ function RecurringCard({
       setAmount('')
       setDay(1)
     } catch (e) {
-      Alert.alert('오류', e instanceof Error ? e.message : '등록하지 못했어요')
+      showAlert('오류', e instanceof Error ? e.message : '등록하지 못했어요')
     } finally {
       setBusy(false)
     }
   }
 
   const confirmDelete = (r: RecurringExpense) =>
-    Alert.alert('고정 지출 삭제', `'${r.memo}'을(를) 삭제할까요?`, [
+    showAlert('고정 지출 삭제', `'${r.memo}'을(를) 삭제할까요?`, [
       { text: '취소', style: 'cancel' },
       {
         text: '삭제',
         style: 'destructive',
-        onPress: () => deleteRecurringExpense(r.id).catch(() => Alert.alert('오류', '삭제하지 못했어요')),
+        onPress: () => deleteRecurringExpense(r.id).catch(() => showAlert('오류', '삭제하지 못했어요')),
       },
     ])
 

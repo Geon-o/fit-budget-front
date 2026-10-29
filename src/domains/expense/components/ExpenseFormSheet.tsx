@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ComponentRef } from 'react'
 import {
-  Alert,
   Animated,
   Easing,
   Keyboard,
@@ -16,6 +15,7 @@ import {
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { EXPENSE_CATEGORIES, getCategoryStyle } from '../../../shared/constants/categories'
+import { showAlert } from '../../../shared/components/AppAlert'
 import { colors } from '../../../shared/theme'
 import type { Expense } from '../types/expense.types'
 
@@ -180,7 +180,7 @@ export function ExpenseFormSheet({ yearMonth, initial, prefill, onSubmit, onDele
           </Pressable>
           {onDelete && (
             <Pressable style={styles.secondary} disabled={busy} onPress={() =>
-                Alert.alert('지출 삭제', '이 지출을 삭제할까요?', [
+                showAlert('지출 삭제', '이 지출을 삭제할까요?', [
                   { text: '취소', style: 'cancel' },
                   { text: '삭제', style: 'destructive', onPress: () => run(onDelete) },
                 ])

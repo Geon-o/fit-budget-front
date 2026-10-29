@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { ActivityIndicator, Alert, Animated, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { ActivityIndicator, Animated, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useBudgets } from '../../../domains/budget'
 import { ExpenseFormSheet, useClosedMonths, useExpenses, usePendingPayments } from '../../../domains/expense'
@@ -8,6 +8,7 @@ import { useLedger } from '../../../providers/LedgerProvider'
 import { useHideTabBarOnScroll, useTabBarHidden } from '../../../providers/TabBarProvider'
 import { MonthNav, useMonth } from '../../../shared/components/MonthNav'
 import { getCategoryStyle } from '../../../shared/constants/categories'
+import { showAlert } from '../../../shared/components/AppAlert'
 import { colors, tabBar } from '../../../shared/theme'
 import { formatCurrency } from '../../../shared/utils/dateUtils'
 
@@ -42,7 +43,7 @@ function ExpensesContent({ ledgerId, ledgerName }: { ledgerId: string; ledgerNam
 
   // 마감된 달은 지출을 바꿀 수 없고, 대신 목표 저축 대비 결과를 보여준다
   const toggleClose = () =>
-    toggleClosed(yearMonth).catch((e) => Alert.alert('오류', e instanceof Error ? e.message : '처리하지 못했어요'))
+    toggleClosed(yearMonth).catch((e) => showAlert('오류', e instanceof Error ? e.message : '처리하지 못했어요'))
   // 최신 날짜가 위로 오게 날짜별로 묶는다
   const groups = useMemo(() => {
     const map = new Map<string, Expense[]>()

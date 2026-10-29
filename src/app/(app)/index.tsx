@@ -1,10 +1,11 @@
 import { router } from 'expo-router'
 import { useState } from 'react'
-import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { logout } from '../../domains/auth'
 import { useAuthContext } from '../../providers/AuthProvider'
 import { useLedger } from '../../providers/LedgerProvider'
+import { showAlert } from '../../shared/components/AppAlert'
 import { colors } from '../../shared/theme'
 
 const ACCENT_COLORS = ['#d99b6c', '#6c9bd9', '#8fb96c', '#b06cd9', '#d96c8f', '#6cc2c2']
@@ -25,7 +26,7 @@ export default function LedgerList() {
     try {
       await action()
     } catch (e) {
-      Alert.alert('오류', e instanceof Error ? e.message : '요청에 실패했어요')
+      showAlert('오류', e instanceof Error ? e.message : '요청에 실패했어요')
     }
   }
 
@@ -46,7 +47,7 @@ export default function LedgerList() {
     })
 
   const confirmDelete = (id: string, name: string) =>
-    Alert.alert('가계부 삭제', `'${name}' 가계부를 삭제할까요? 안의 지출/예산/고정지출 기록이 모두 함께 삭제돼요.`, [
+    showAlert('가계부 삭제', `'${name}' 가계부를 삭제할까요? 안의 지출/예산/고정지출 기록이 모두 함께 삭제돼요.`, [
       { text: '취소', style: 'cancel' },
       { text: '삭제', style: 'destructive', onPress: () => run(() => deleteLedger(id)) },
     ])
